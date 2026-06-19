@@ -14,7 +14,86 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      equipments: {
+        Row: {
+          created_at: string
+          data_embarque: string | null
+          data_producao: string | null
+          equipamento: string
+          id: string
+          posicao: string
+          project_id: string
+          quantidade: number
+          status_embarque: string
+          status_producao: string
+          user_id: string
+          valor_unitario: number
+        }
+        Insert: {
+          created_at?: string
+          data_embarque?: string | null
+          data_producao?: string | null
+          equipamento?: string
+          id?: string
+          posicao?: string
+          project_id: string
+          quantidade?: number
+          status_embarque?: string
+          status_producao?: string
+          user_id: string
+          valor_unitario?: number
+        }
+        Update: {
+          created_at?: string
+          data_embarque?: string | null
+          data_producao?: string | null
+          equipamento?: string
+          id?: string
+          posicao?: string
+          project_id?: string
+          quantidade?: number
+          status_embarque?: string
+          status_producao?: string
+          user_id?: string
+          valor_unitario?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "equipments_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      projects: {
+        Row: {
+          client: string
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          client: string
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          client?: string
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
