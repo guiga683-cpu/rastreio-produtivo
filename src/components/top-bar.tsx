@@ -4,6 +4,7 @@ import { LogOut, Package } from "lucide-react";
 
 const tabs = [
   { to: "/dashboard", label: "Dashboard" },
+  { to: "/faturamento", label: "Faturamento" },
   { to: "/projetos", label: "Projetos" },
   { to: "/novo", label: "Novo projeto" },
 ] as const;

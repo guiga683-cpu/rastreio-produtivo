@@ -1,4 +1,4 @@
-import type { StatusEmbarque, StatusProducao } from "@/lib/embarques";
+import type { StatusEmbarque, StatusProducao, TipoItem } from "@/lib/embarques";
 
 export function ProdBadge({ value }: { value: StatusProducao }) {
   const cls =
@@ -24,4 +24,12 @@ export function LateBadge({ days }: { days: number }) {
 
 export function TodayBadge() {
   return <span className="pill bg-warning text-warning-foreground">hoje</span>;
+}
+
+export function TipoBadge({ value }: { value: TipoItem }) {
+  const cls =
+    value === "Material"
+      ? "bg-warning/20 text-warning-foreground"
+      : "bg-primary/10 text-primary";
+  return <span className={`pill ${cls}`}>{value}</span>;
 }
