@@ -42,6 +42,7 @@ function NovoProjeto() {
             status_producao: r.status_producao,
             data_embarque: r.data_embarque,
             status_embarque: r.status_embarque,
+            tipo: r.tipo,
           })),
         );
         if (eErr) throw eErr;

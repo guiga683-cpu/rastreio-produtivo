@@ -35,6 +35,7 @@ export async function seedExampleIfEmpty() {
       status_producao: "OK",
       data_embarque: iso(past),
       status_embarque: "Não expedido",
+      tipo: "Equipamento",
     },
     {
       project_id: project.id,
@@ -48,6 +49,7 @@ export async function seedExampleIfEmpty() {
       status_producao: "OK",
       data_embarque: iso(today),
       status_embarque: "Não expedido",
+      tipo: "Equipamento",
     },
     {
       project_id: project.id,
@@ -61,6 +63,7 @@ export async function seedExampleIfEmpty() {
       status_producao: "NOK",
       data_embarque: iso(soon),
       status_embarque: "Não expedido",
+      tipo: "Material",
     },
   ]);
 }

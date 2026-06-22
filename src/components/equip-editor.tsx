@@ -1,4 +1,4 @@
-import type { Equipment, StatusEmbarque, StatusProducao } from "@/lib/embarques";
+import type { Equipment, StatusEmbarque, StatusProducao, TipoItem } from "@/lib/embarques";
 import { Trash2, Plus } from "lucide-react";
 
 export type DraftEquip = Omit<Equipment, "id" | "project_id"> & { id?: string };
@@ -18,6 +18,7 @@ export function emptyRow(): DraftEquip {
     status_producao: "NOK",
     data_embarque: null,
     status_embarque: "Não expedido",
+    tipo: "Equipamento",
   };
 }
 
@@ -41,6 +42,7 @@ export function EquipEditor({ rows, onChange }: Props) {
           <thead className="bg-muted/60 text-muted-foreground">
             <tr className="text-left">
               <th className="px-2 py-2 font-medium min-w-[280px]">Equipamento</th>
+              <th className="px-2 py-2 font-medium">Tipo</th>
               <th className="px-2 py-2 font-medium">Posição</th>
               <th className="px-2 py-2 font-medium">Valor Un</th>
               <th className="px-2 py-2 font-medium">Qtd</th>
@@ -61,6 +63,16 @@ export function EquipEditor({ rows, onChange }: Props) {
                     onChange={(e) => update(i, { equipamento: e.target.value })}
                     className="w-full resize-y rounded border bg-background px-2 py-1 text-xs"
                   />
+                </td>
+                <td className="px-2 py-1.5">
+                  <select
+                    value={r.tipo}
+                    onChange={(e) => update(i, { tipo: e.target.value as TipoItem })}
+                    className="rounded border bg-background px-2 py-1 text-xs"
+                  >
+                    <option>Equipamento</option>
+                    <option>Material</option>
+                  </select>
                 </td>
                 <td className="px-2 py-1.5">
                   <input
@@ -142,7 +154,7 @@ export function EquipEditor({ rows, onChange }: Props) {
             ))}
             {rows.length === 0 && (
               <tr>
-                <td colSpan={9} className="px-3 py-6 text-center text-sm text-muted-foreground">
+                <td colSpan={10} className="px-3 py-6 text-center text-sm text-muted-foreground">
                   Sem equipamentos. Adicione uma linha.
                 </td>
               </tr>

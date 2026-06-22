@@ -1,5 +1,6 @@
 export type StatusProducao = "OK" | "NOK";
 export type StatusEmbarque = "Não expedido" | "Expedido" | "Cancelado";
+export type TipoItem = "Equipamento" | "Material";
 
 export interface Project {
   id: string;
@@ -18,12 +19,23 @@ export interface Equipment {
   status_producao: StatusProducao;
   data_embarque: string | null;
   status_embarque: StatusEmbarque;
+  tipo: TipoItem;
 }
 
-export const BRL = new Intl.NumberFormat("pt-BR", {
-  style: "currency",
-  currency: "BRL",
+const _brl = new Intl.NumberFormat("pt-BR", {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
 });
+
+/** Formata em "R$ 185 000,00" (espaço como separador de milhar, vírgula nos decimais). */
+export function formatBRL(value: number | string | null | undefined): string {
+  const n = Number(value ?? 0) || 0;
+  // pt-BR usa ponto como milhar e vírgula nos decimais; trocamos o ponto por espaço.
+  return "R$ " + _brl.format(n).replace(/\./g, " ");
+}
+
+/** Compat: alguns lugares ainda usam BRL.format(...) */
+export const BRL = { format: (n: number) => formatBRL(n) };
 
 export function formatDate(d: string | null): string {
   if (!d) return "—";
@@ -56,3 +68,12 @@ export function isNext30(e: Equipment, today = todayISO()): boolean {
 export function isToday(e: Equipment, today = todayISO()): boolean {
   return e.status_embarque === "Não expedido" && e.data_embarque === today;
 }
+
+export function subtotal(e: Pick<Equipment, "valor_unitario" | "quantidade">): number {
+  return Number(e.valor_unitario || 0) * Number(e.quantidade || 0);
+}
+
+export const MESES_PT = [
+  "Jan", "Fev", "Mar", "Abr", "Mai", "Jun",
+  "Jul", "Ago", "Set", "Out", "Nov", "Dez",
+];

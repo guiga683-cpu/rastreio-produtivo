@@ -1,6 +1,6 @@
 import type { Equipment, Project } from "@/lib/embarques";
-import { BRL, daysBetween, formatDate, isLate, isToday, todayISO } from "@/lib/embarques";
-import { EmbarqueBadge, LateBadge, ProdBadge, TodayBadge } from "@/components/badges";
+import { formatBRL, daysBetween, formatDate, isLate, isToday, todayISO } from "@/lib/embarques";
+import { EmbarqueBadge, LateBadge, ProdBadge, TodayBadge, TipoBadge } from "@/components/badges";
 
 interface Row extends Equipment {
   project?: Project;
@@ -29,6 +29,7 @@ export function EquipTable({ rows, showProject = true, empty = "Nenhum equipamen
             {showProject && <th className="px-3 py-2 font-medium">Projeto</th>}
             {showProject && <th className="px-3 py-2 font-medium">Cliente</th>}
             <th className="px-3 py-2 font-medium">Equipamento</th>
+            <th className="px-3 py-2 font-medium">Tipo</th>
             <th className="px-3 py-2 font-medium">Posição</th>
             <th className="px-3 py-2 text-right font-medium">Valor Un</th>
             <th className="px-3 py-2 text-right font-medium">Qtd</th>
@@ -54,9 +55,10 @@ export function EquipTable({ rows, showProject = true, empty = "Nenhum equipamen
                 <td className="px-3 py-2 max-w-[420px]">
                   <div className="line-clamp-2">{r.equipamento}</div>
                 </td>
+                <td className="px-3 py-2"><TipoBadge value={r.tipo} /></td>
                 <td className="px-3 py-2">{r.posicao}</td>
                 <td className="px-3 py-2 text-right tabular-nums">
-                  {BRL.format(Number(r.valor_unitario))}
+                  {formatBRL(r.valor_unitario)}
                 </td>
                 <td className="px-3 py-2 text-right tabular-nums">{r.quantidade}</td>
                 <td className="px-3 py-2 whitespace-nowrap">{formatDate(r.data_producao)}</td>

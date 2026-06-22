@@ -122,6 +122,7 @@ function ProjectCard({ project, onChanged }: { project: FullProject; onChanged: 
           status_producao: r.status_producao,
           data_embarque: r.data_embarque,
           status_embarque: r.status_embarque,
+          tipo: r.tipo,
         };
         if (r.id) {
           const { error } = await supabase.from("equipments").update(payload).eq("id", r.id);
@@ -257,5 +258,6 @@ function toDraft(e: Equipment): DraftEquip {
     status_producao: e.status_producao,
     data_embarque: e.data_embarque,
     status_embarque: e.status_embarque,
+    tipo: (e.tipo ?? "Equipamento") as DraftEquip["tipo"],
   };
 }
