@@ -26,6 +26,7 @@ export type Database = {
           quantidade: number
           status_embarque: string
           status_producao: string
+          tipo: string
           user_id: string
           valor_unitario: number
         }
@@ -40,6 +41,7 @@ export type Database = {
           quantidade?: number
           status_embarque?: string
           status_producao?: string
+          tipo?: string
           user_id: string
           valor_unitario?: number
         }
@@ -54,6 +56,7 @@ export type Database = {
           quantidade?: number
           status_embarque?: string
           status_producao?: string
+          tipo?: string
           user_id?: string
           valor_unitario?: number
         }
@@ -66,6 +69,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      metas_faturamento: {
+        Row: {
+          ano: number
+          created_at: string
+          id: string
+          updated_at: string
+          user_id: string
+          valor: number
+        }
+        Insert: {
+          ano: number
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+          valor?: number
+        }
+        Update: {
+          ano?: number
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+          valor?: number
+        }
+        Relationships: []
       }
       projects: {
         Row: {
