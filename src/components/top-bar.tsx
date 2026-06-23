@@ -2,16 +2,20 @@ import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { LogOut, Package } from "lucide-react";
 
-const tabs = [
+const baseTabs = [
   { to: "/dashboard", label: "Dashboard" },
   { to: "/faturamento", label: "Faturamento" },
   { to: "/projetos", label: "Projetos" },
   { to: "/novo", label: "Novo projeto" },
 ] as const;
 
-export function TopBar() {
+export function TopBar({ isAdmin = false }: { isAdmin?: boolean }) {
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+  const tabs = isAdmin
+    ? [...baseTabs, { to: "/admin", label: "Admin" } as const]
+    : baseTabs;
 
   async function signOut() {
     await supabase.auth.signOut();

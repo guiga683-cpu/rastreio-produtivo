@@ -171,11 +171,12 @@ function FaturamentoPage() {
       .from("metas_faturamento")
       .upsert(
         { user_id: u.user.id, ano: Number(ano), valor: v },
-        { onConflict: "user_id,ano" },
+        { onConflict: "ano" },
       );
     if (error) alert(error.message);
     else qc.invalidateQueries({ queryKey: ["fat-data"] });
   }
+
 
   // Faturado do ano (independente de mês/projeto/tipo? — usamos ano selecionado, todos os filtros)
   const faturadoDoAno = useMemo(() => {
