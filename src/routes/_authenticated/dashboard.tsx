@@ -2,11 +2,22 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Equipment, Project } from "@/lib/embarques";
-import { isLate, isNext30 } from "@/lib/embarques";
+import { isLate, isNext30, subtotal } from "@/lib/embarques";
 import { EquipTable } from "@/components/equip-table";
 import { AlertTriangle, CalendarClock, FolderKanban, Boxes } from "lucide-react";
 import { useEffect } from "react";
 import { seedExampleIfEmpty } from "@/lib/seed";
+import { useSortedRows, type SortKeyDef } from "@/hooks/useSortedRows";
+import { SortBar } from "@/components/sort-bar";
+
+type Next30Row = Equipment & { project?: Project };
+
+const NEXT30_SORT_KEYS: Record<"cliente" | "data" | "valor" | "projeto", SortKeyDef<Next30Row>> = {
+  cliente: { label: "Cliente", defaultDir: "asc", get: (r) => r.project?.client ?? null },
+  data: { label: "Data Embarque", defaultDir: "asc", get: (r) => r.data_embarque },
+  valor: { label: "Valor", defaultDir: "desc", get: (r) => subtotal(r) },
+  projeto: { label: "Projeto", defaultDir: "asc", get: (r) => r.project?.name ?? null },
+};
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — Embarques" }] }),
