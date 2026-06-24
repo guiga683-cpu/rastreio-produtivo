@@ -7,6 +7,24 @@ import type { Equipment, Project } from "@/lib/embarques";
 import { isLate, isNext30 } from "@/lib/embarques";
 import { EquipTable } from "@/components/equip-table";
 import { EquipEditor, emptyRow, type DraftEquip } from "@/components/equip-editor";
+import { useSortedRows, type SortKeyDef } from "@/hooks/useSortedRows";
+import { SortBar } from "@/components/sort-bar";
+
+type ProjEquipRow = Equipment & { project: Project };
+
+const PROJ_SORT_KEYS: Record<"tipo" | "posicao" | "valor" | "data", SortKeyDef<ProjEquipRow>> = {
+  tipo: { label: "Tipo", defaultDir: "asc", get: (r) => r.tipo ?? null },
+  posicao: {
+    label: "Posição",
+    defaultDir: "asc",
+    get: (r) => {
+      const n = parseInt(r.posicao ?? "", 10);
+      return Number.isNaN(n) ? null : n;
+    },
+  },
+  valor: { label: "Valor", defaultDir: "desc", get: (r) => Number(r.valor_unitario ?? 0) },
+  data: { label: "Data Embarque", defaultDir: "asc", get: (r) => r.data_embarque },
+};
 
 export const Route = createFileRoute("/_authenticated/projetos")({
   head: () => ({ meta: [{ title: "Projetos — Embarques" }] }),
