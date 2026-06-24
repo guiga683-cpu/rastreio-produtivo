@@ -265,6 +265,16 @@ function ProjectCard({ project, onChanged }: { project: FullProject; onChanged: 
   );
 }
 
+function SortedEquipList({ rows }: { rows: ProjEquipRow[] }) {
+  const { sorted, sortKey, sortDir, setSort } = useSortedRows(rows, PROJ_SORT_KEYS, "posicao");
+  return (
+    <div className="space-y-2">
+      <SortBar keys={PROJ_SORT_KEYS} sortKey={sortKey} sortDir={sortDir} setSort={setSort} />
+      <EquipTable rows={sorted} showProject={false} empty="Projeto sem equipamentos." />
+    </div>
+  );
+}
+
 function toDraft(e: Equipment): DraftEquip {
   return {
     id: e.id,
