@@ -31,7 +31,7 @@ export function EquipTable({ rows, showProject = true, empty = "Nenhum equipamen
             <th className="px-3 py-2 font-medium">Equipamento</th>
             <th className="px-3 py-2 font-medium">Tipo</th>
             <th className="px-3 py-2 font-medium">Posição</th>
-            <th className="px-3 py-2 text-right font-medium">Valor Un</th>
+            <th className="px-3 py-2 text-right font-medium whitespace-nowrap min-w-[110px]">Valor</th>
             <th className="px-3 py-2 text-right font-medium">Qtd</th>
             <th className="px-3 py-2 font-medium">Data Prod.</th>
             <th className="px-3 py-2 font-medium">Status Prod.</th>
@@ -57,7 +57,7 @@ export function EquipTable({ rows, showProject = true, empty = "Nenhum equipamen
                 </td>
                 <td className="px-3 py-2"><TipoBadge value={r.tipo} /></td>
                 <td className="px-3 py-2">{r.posicao}</td>
-                <td className="px-3 py-2 text-right tabular-nums">
+                <td className="px-3 py-2 text-right tabular-nums whitespace-nowrap min-w-[110px]">
                   {formatBRL(r.valor_unitario)}
                 </td>
                 <td className="px-3 py-2 text-right tabular-nums">{r.quantidade}</td>
