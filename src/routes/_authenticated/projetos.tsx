@@ -257,7 +257,7 @@ function ProjectCard({ project, onChanged }: { project: FullProject; onChanged: 
               </div>
             </div>
           ) : (
-            <EquipTable rows={enriched} showProject={false} empty="Projeto sem equipamentos." />
+            <SortedEquipList rows={enriched} />
           )}
         </div>
       )}
