@@ -105,12 +105,19 @@ function Dashboard() {
         <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
           Próximos 30 dias
         </h2>
-        <EquipTable
-          rows={next30}
-          empty={isLoading ? "Carregando…" : "Nada nos próximos 30 dias."}
-        />
+        <Next30Section rows={next30} isLoading={isLoading} />
       </section>
     </div>
+  );
+}
+
+function Next30Section({ rows, isLoading }: { rows: Next30Row[]; isLoading: boolean }) {
+  const { sorted, sortKey, sortDir, setSort } = useSortedRows(rows, NEXT30_SORT_KEYS, "data");
+  return (
+    <>
+      <SortBar keys={NEXT30_SORT_KEYS} sortKey={sortKey} sortDir={sortDir} setSort={setSort} />
+      <EquipTable rows={sorted} empty={isLoading ? "Carregando…" : "Nada nos próximos 30 dias."} />
+    </>
   );
 }
 
