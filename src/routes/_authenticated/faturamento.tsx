@@ -433,8 +433,8 @@ function FaturamentoPage() {
                 <th className="px-3 py-2 font-medium">Equipamento</th>
                 <th className="px-3 py-2 font-medium">Tipo</th>
                 <th className="px-3 py-2 text-right font-medium">Qtd</th>
-                <th className="px-3 py-2 text-right font-medium">Valor Un</th>
-                <th className="px-3 py-2 text-right font-medium">Subtotal</th>
+                <th className="px-3 py-2 text-right font-medium whitespace-nowrap min-w-[110px]">Valor Un</th>
+                <th className="px-3 py-2 text-right font-medium whitespace-nowrap min-w-[110px]">Subtotal</th>
                 <th className="px-3 py-2 font-medium">Data Embarque</th>
                 <th className="px-3 py-2 font-medium">Status</th>
                 <th className="px-3 py-2 font-medium">Situação</th>
@@ -465,8 +465,8 @@ function FaturamentoPage() {
                     </td>
                     <td className="px-3 py-2"><TipoBadge value={e.tipo} /></td>
                     <td className="px-3 py-2 text-right tabular-nums">{e.quantidade}</td>
-                    <td className="px-3 py-2 text-right tabular-nums">{formatBRL(e.valor_unitario)}</td>
-                    <td className="px-3 py-2 text-right tabular-nums font-medium">{formatBRL(subtotal(e))}</td>
+                    <td className="px-3 py-2 text-right tabular-nums whitespace-nowrap min-w-[110px]">{formatBRL(e.valor_unitario)}</td>
+                    <td className="px-3 py-2 text-right tabular-nums font-medium whitespace-nowrap min-w-[110px]">{formatBRL(subtotal(e))}</td>
                     <td className="px-3 py-2 whitespace-nowrap">{formatDate(e.data_embarque)}</td>
                     <td className="px-3 py-2"><EmbarqueBadge value={e.status_embarque} /></td>
                     <td className="px-3 py-2">
