@@ -18,9 +18,13 @@ export type Database = {
         Row: {
           created_at: string
           data_embarque: string | null
+          data_faturamento: string | null
           data_producao: string | null
           equipamento: string
+          frete: string | null
           id: string
+          observacao: string | null
+          peso: number | null
           posicao: string | null
           project_id: string
           quantidade: number
@@ -29,13 +33,18 @@ export type Database = {
           tipo: string
           user_id: string
           valor_unitario: number
+          volume: number | null
         }
         Insert: {
           created_at?: string
           data_embarque?: string | null
+          data_faturamento?: string | null
           data_producao?: string | null
           equipamento?: string
+          frete?: string | null
           id?: string
+          observacao?: string | null
+          peso?: number | null
           posicao?: string | null
           project_id: string
           quantidade?: number
@@ -44,13 +53,18 @@ export type Database = {
           tipo?: string
           user_id: string
           valor_unitario?: number
+          volume?: number | null
         }
         Update: {
           created_at?: string
           data_embarque?: string | null
+          data_faturamento?: string | null
           data_producao?: string | null
           equipamento?: string
+          frete?: string | null
           id?: string
+          observacao?: string | null
+          peso?: number | null
           posicao?: string | null
           project_id?: string
           quantidade?: number
@@ -59,6 +73,7 @@ export type Database = {
           tipo?: string
           user_id?: string
           valor_unitario?: number
+          volume?: number | null
         }
         Relationships: [
           {
