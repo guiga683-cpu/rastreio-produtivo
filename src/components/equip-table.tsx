@@ -34,7 +34,7 @@ export function EquipTable({ rows, showProject = true, empty = "Nenhum equipamen
   return (
     <div className="overflow-x-auto rounded-md border bg-card">
       <table className="w-full text-xs">
-        <thead className="bg-muted/60 text-muted-foreground">
+        <thead className="sticky top-0 z-10 bg-muted text-muted-foreground shadow-sm">
           <tr className="text-left">
             {showProject && <th className="px-3 py-2 font-medium">Projeto</th>}
             {showProject && <th className="px-3 py-2 font-medium">Cliente</th>}
