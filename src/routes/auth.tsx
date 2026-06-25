@@ -137,11 +137,7 @@ function AuthPage() {
               disabled={loading}
               className="w-full rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
             >
-              {loading
-                ? "Aguarde…"
-                : mode === "login"
-                  ? "Entrar"
-                  : "Solicitar acesso"}
+              {loading ? "Aguarde…" : mode === "login" ? "Entrar" : "Solicitar acesso"}
             </button>
           </form>
           <button
@@ -152,9 +148,7 @@ function AuthPage() {
             }}
             className="mt-4 w-full text-center text-xs text-muted-foreground hover:text-foreground"
           >
-            {mode === "login"
-              ? "Não tem conta? Solicitar acesso"
-              : "Já tem conta? Entrar"}
+            {mode === "login" ? "Não tem conta? Solicitar acesso" : "Já tem conta? Entrar"}
           </button>
         </div>
       </div>

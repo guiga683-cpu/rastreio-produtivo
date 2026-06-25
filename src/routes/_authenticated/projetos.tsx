@@ -133,14 +133,19 @@ function ProjectCard({ project, onChanged }: { project: FullProject; onChanged: 
       for (const r of rows) {
         const payload = {
           equipamento: r.equipamento,
-          posicao: r.posicao,
+          posicao: r.tipo === "Material TRT" ? null : r.posicao,
           valor_unitario: r.valor_unitario,
           quantidade: r.quantidade,
-          data_producao: r.data_producao,
-          status_producao: r.status_producao,
+          data_producao: r.tipo === "Material TRT" ? null : r.data_producao,
+          status_producao: r.tipo === "Material TRT" ? null : r.status_producao,
           data_embarque: r.data_embarque,
           status_embarque: r.status_embarque,
           tipo: r.tipo,
+          data_faturamento: r.data_faturamento,
+          frete: r.tipo === "Material TRT" ? r.frete : null,
+          peso: r.tipo === "Material TRT" ? r.peso : null,
+          volume: r.tipo === "Material TRT" ? r.volume : null,
+          observacao: r.tipo === "Material TRT" ? r.observacao : null,
         };
         if (r.id) {
           const { error } = await supabase.from("equipments").update(payload).eq("id", r.id);
@@ -279,7 +284,7 @@ function toDraft(e: Equipment): DraftEquip {
   return {
     id: e.id,
     equipamento: e.equipamento,
-    posicao: e.posicao,
+    posicao: e.posicao ?? null,
     valor_unitario: Number(e.valor_unitario),
     quantidade: e.quantidade,
     data_producao: e.data_producao,
@@ -287,5 +292,10 @@ function toDraft(e: Equipment): DraftEquip {
     data_embarque: e.data_embarque,
     status_embarque: e.status_embarque,
     tipo: (e.tipo ?? "Equipamento") as DraftEquip["tipo"],
+    data_faturamento: e.data_faturamento ?? null,
+    frete: e.frete ?? null,
+    peso: e.peso ?? null,
+    volume: e.volume ?? null,
+    observacao: e.observacao ?? null,
   };
 }

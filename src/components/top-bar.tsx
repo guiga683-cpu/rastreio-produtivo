@@ -13,9 +13,7 @@ export function TopBar({ isAdmin = false }: { isAdmin?: boolean }) {
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
-  const tabs = isAdmin
-    ? [...baseTabs, { to: "/admin", label: "Admin" } as const]
-    : baseTabs;
+  const tabs = isAdmin ? [...baseTabs, { to: "/admin", label: "Admin" } as const] : baseTabs;
 
   async function signOut() {
     await supabase.auth.signOut();

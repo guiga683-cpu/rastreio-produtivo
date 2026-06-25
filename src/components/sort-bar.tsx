@@ -8,7 +8,12 @@ interface SortBarProps<K extends string, T> {
   setSort: (k: K) => void;
 }
 
-export function SortBar<K extends string, T>({ keys, sortKey, sortDir, setSort }: SortBarProps<K, T>) {
+export function SortBar<K extends string, T>({
+  keys,
+  sortKey,
+  sortDir,
+  setSort,
+}: SortBarProps<K, T>) {
   const order = Object.keys(keys) as K[];
   return (
     <div className="flex flex-wrap items-center justify-end gap-1.5 text-xs">

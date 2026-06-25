@@ -2,9 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Equipment, Project } from "@/lib/embarques";
-import { isLate, isNext30, subtotal } from "@/lib/embarques";
+import { isLate, isNext30, isTipoMaterial, subtotal } from "@/lib/embarques";
 import { EquipTable } from "@/components/equip-table";
-import { AlertTriangle, CalendarClock, FolderKanban, Boxes } from "lucide-react";
+import { AlertTriangle, CalendarClock, FolderKanban, Boxes, Package } from "lucide-react";
 import { useEffect } from "react";
 import { seedExampleIfEmpty } from "@/lib/seed";
 import { useSortedRows, type SortKeyDef } from "@/hooks/useSortedRows";
@@ -52,8 +52,13 @@ function Dashboard() {
   const pById = new Map(projects.map((p) => [p.id, p]));
   const enriched = equipments.map((e) => ({ ...e, project: pById.get(e.project_id) }));
 
-  const late = enriched.filter((e) => isLate(e));
-  const next30 = enriched.filter((e) => isNext30(e));
+  const equipEnriched = enriched.filter((e) => e.tipo === "Equipamento");
+  const matEnriched = enriched.filter((e) => isTipoMaterial(e.tipo));
+
+  const lateEquip = equipEnriched.filter((e) => isLate(e));
+  const lateMat = matEnriched.filter((e) => isLate(e));
+  const next30Equip = equipEnriched.filter((e) => isNext30(e));
+  const next30Mat = matEnriched.filter((e) => isNext30(e));
 
   return (
     <div className="space-y-6">
@@ -62,17 +67,17 @@ function Dashboard() {
         <p className="text-sm text-muted-foreground">Visão geral dos embarques.</p>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         <MetricCard
           icon={<AlertTriangle className="h-4 w-4" />}
           label="Atrasados"
-          value={late.length}
+          value={lateEquip.length + lateMat.length}
           tone="danger"
         />
         <MetricCard
           icon={<CalendarClock className="h-4 w-4" />}
           label="Próximos 30 dias"
-          value={next30.length}
+          value={next30Equip.length + next30Mat.length}
           tone="warning"
         />
         <MetricCard
@@ -82,8 +87,13 @@ function Dashboard() {
         />
         <MetricCard
           icon={<Boxes className="h-4 w-4" />}
-          label="Total de equipamentos"
-          value={equipments.length}
+          label="Equipamentos"
+          value={equipEnriched.length}
+        />
+        <MetricCard
+          icon={<Package className="h-4 w-4" />}
+          label="Materiais"
+          value={matEnriched.length}
         />
       </div>
 
@@ -94,19 +104,35 @@ function Dashboard() {
         <LegendDot color="bg-card border" label="Dentro do prazo" />
       </div>
 
-      <section className="space-y-2">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-          Atrasados
-        </h2>
-        <EquipTable rows={late} empty={isLoading ? "Carregando…" : "Nenhum atraso. 🎉"} />
-      </section>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <div className="space-y-4">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            Equipamentos
+          </h2>
+          <section className="space-y-2">
+            <h3 className="text-xs font-medium text-danger">Atrasados</h3>
+            <EquipTable rows={lateEquip} empty={isLoading ? "Carregando…" : "Nenhum atraso."} />
+          </section>
+          <section className="space-y-2">
+            <h3 className="text-xs font-medium text-warning-foreground">Próximos 30 dias</h3>
+            <Next30Section rows={next30Equip} isLoading={isLoading} />
+          </section>
+        </div>
 
-      <section className="space-y-2">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-          Próximos 30 dias
-        </h2>
-        <Next30Section rows={next30} isLoading={isLoading} />
-      </section>
+        <div className="space-y-4">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            Materiais
+          </h2>
+          <section className="space-y-2">
+            <h3 className="text-xs font-medium text-danger">Atrasados</h3>
+            <EquipTable rows={lateMat} empty={isLoading ? "Carregando…" : "Nenhum atraso."} />
+          </section>
+          <section className="space-y-2">
+            <h3 className="text-xs font-medium text-warning-foreground">Próximos 30 dias</h3>
+            <Next30Section rows={next30Mat} isLoading={isLoading} />
+          </section>
+        </div>
+      </div>
     </div>
   );
 }

@@ -35,14 +35,19 @@ function NovoProjeto() {
             project_id: project.id,
             user_id: u.user!.id,
             equipamento: r.equipamento,
-            posicao: r.posicao,
+            posicao: r.tipo === "Material TRT" ? null : r.posicao,
             valor_unitario: r.valor_unitario,
             quantidade: r.quantidade,
-            data_producao: r.data_producao,
-            status_producao: r.status_producao,
+            data_producao: r.tipo === "Material TRT" ? null : r.data_producao,
+            status_producao: r.tipo === "Material TRT" ? null : r.status_producao,
             data_embarque: r.data_embarque,
             status_embarque: r.status_embarque,
             tipo: r.tipo,
+            data_faturamento: r.data_faturamento,
+            frete: r.tipo === "Material TRT" ? r.frete : null,
+            peso: r.tipo === "Material TRT" ? r.peso : null,
+            volume: r.tipo === "Material TRT" ? r.volume : null,
+            observacao: r.tipo === "Material TRT" ? r.observacao : null,
           })),
         );
         if (eErr) throw eErr;
@@ -59,9 +64,7 @@ function NovoProjeto() {
     <form onSubmit={save} className="space-y-5">
       <div>
         <h1 className="text-xl font-semibold">Novo projeto</h1>
-        <p className="text-sm text-muted-foreground">
-          Cadastre um projeto e seus equipamentos.
-        </p>
+        <p className="text-sm text-muted-foreground">Cadastre um projeto e seus equipamentos.</p>
       </div>
 
       <div className="grid gap-4 rounded-lg border bg-card p-4 sm:grid-cols-2">
@@ -92,7 +95,9 @@ function NovoProjeto() {
         <EquipEditor rows={rows} onChange={setRows} />
       </div>
 
-      {error && <div className="rounded-md bg-danger/10 px-3 py-2 text-xs text-danger">{error}</div>}
+      {error && (
+        <div className="rounded-md bg-danger/10 px-3 py-2 text-xs text-danger">{error}</div>
+      )}
 
       <div className="flex gap-2">
         <button
