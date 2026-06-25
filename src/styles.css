@@ -40,20 +40,21 @@
   --color-row-late: var(--row-late);
   --color-row-today: var(--row-today);
 
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
 :root {
   --radius: 0.5rem;
 
-  --background: oklch(0.985 0.003 90);     /* #f8f8f6 */
+  --background: oklch(0.985 0.003 90); /* #f8f8f6 */
   --foreground: oklch(0.22 0.02 250);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.22 0.02 250);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.22 0.02 250);
 
-  --primary: oklch(0.48 0.13 250);          /* #185FA5 */
+  --primary: oklch(0.48 0.13 250); /* #185FA5 */
   --primary-foreground: oklch(0.99 0 0);
 
   --secondary: oklch(0.96 0.005 250);
@@ -82,14 +83,19 @@
 }
 
 @layer base {
-  * { border-color: var(--color-border); }
+  * {
+    border-color: var(--color-border);
+  }
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
   }
-  table { border-collapse: separate; border-spacing: 0; }
+  table {
+    border-collapse: separate;
+    border-spacing: 0;
+  }
 }
 
 @utility pill {

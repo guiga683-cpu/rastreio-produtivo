@@ -3,9 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 export async function seedExampleIfEmpty() {
   const { data: user } = await supabase.auth.getUser();
   if (!user.user) return;
-  const { count } = await supabase
-    .from("projects")
-    .select("id", { count: "exact", head: true });
+  const { count } = await supabase.from("projects").select("id", { count: "exact", head: true });
   if ((count ?? 0) > 0) return;
 
   const today = new Date();
@@ -26,8 +24,7 @@ export async function seedExampleIfEmpty() {
     {
       project_id: project.id,
       user_id: user.user.id,
-      equipamento:
-        "Condensador evaporativo S-GTECH CE S 0804-08.0I/02J.A - 821CESAA",
+      equipamento: "Condensador evaporativo S-GTECH CE S 0804-08.0I/02J.A - 821CESAA",
       posicao: "TAG-01",
       valor_unitario: 185400,
       quantidade: 1,
@@ -40,8 +37,7 @@ export async function seedExampleIfEmpty() {
     {
       project_id: project.id,
       user_id: user.user.id,
-      equipamento:
-        "Condensador evaporativo S-GTECH CE S 1206-10.5I/03J.B - 822CESBB",
+      equipamento: "Condensador evaporativo S-GTECH CE S 1206-10.5I/03J.B - 822CESBB",
       posicao: "TAG-02",
       valor_unitario: 212750.5,
       quantidade: 2,
@@ -54,8 +50,7 @@ export async function seedExampleIfEmpty() {
     {
       project_id: project.id,
       user_id: user.user.id,
-      equipamento:
-        "Painel de comando elétrico CCM - 480V - Quadro principal 823PCMAA",
+      equipamento: "Painel de comando elétrico CCM - 480V - Quadro principal 823PCMAA",
       posicao: "TAG-03",
       valor_unitario: 96320,
       quantidade: 1,

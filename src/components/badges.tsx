@@ -1,10 +1,8 @@
 import type { StatusEmbarque, StatusProducao, TipoItem } from "@/lib/embarques";
 
-export function ProdBadge({ value }: { value: StatusProducao }) {
-  const cls =
-    value === "OK"
-      ? "bg-success/15 text-success"
-      : "bg-danger/15 text-danger";
+export function ProdBadge({ value }: { value: StatusProducao | null }) {
+  if (!value) return <span className="text-muted-foreground">—</span>;
+  const cls = value === "OK" ? "bg-success/15 text-success" : "bg-danger/15 text-danger";
   return <span className={`pill ${cls}`}>{value}</span>;
 }
 
@@ -30,6 +28,8 @@ export function TipoBadge({ value }: { value: TipoItem }) {
   const cls =
     value === "Material"
       ? "bg-warning/20 text-warning-foreground"
-      : "bg-primary/10 text-primary";
+      : value === "Material TRT"
+        ? "bg-purple-100 text-purple-700"
+        : "bg-primary/10 text-primary";
   return <span className={`pill ${cls}`}>{value}</span>;
 }

@@ -22,10 +22,11 @@ cadastram, ficam `pending` e precisam ser aprovados por um admin.
 - **Dados/Auth**: Supabase (`@supabase/supabase-js`). Postgres com RLS.
 - **Estado de servidor**: TanStack React Query.
 - **UI**: shadcn/ui (estilo "new-york", baseColor slate) + Radix UI + Tailwind CSS v4
-  + lucide-react (ícones). Toasts via sonner. Formulários: react-hook-form + zod.
+  - lucide-react (ícones). Toasts via sonner. Formulários: react-hook-form + zod.
 - **Plataforma**: projeto conectado ao **Lovable** (edição em sandbox + preview).
 
 Fluxo de auth e autorização:
+
 - `src/integrations/supabase/client.ts` — cliente browser (anon key, RLS).
 - `src/integrations/supabase/client.server.ts` — cliente admin (service role,
   **ignora RLS**); só em código de servidor (`*.server.ts`).

@@ -1,6 +1,6 @@
 export type StatusProducao = "OK" | "NOK";
 export type StatusEmbarque = "Não expedido" | "Expedido" | "Cancelado";
-export type TipoItem = "Equipamento" | "Material";
+export type TipoItem = "Equipamento" | "Material" | "Material TRT";
 
 export interface Project {
   id: string;
@@ -12,14 +12,23 @@ export interface Equipment {
   id: string;
   project_id: string;
   equipamento: string;
-  posicao: string;
+  posicao: string | null;
   valor_unitario: number;
   quantidade: number;
   data_producao: string | null;
-  status_producao: StatusProducao;
+  status_producao: StatusProducao | null;
   data_embarque: string | null;
   status_embarque: StatusEmbarque;
   tipo: TipoItem;
+  data_faturamento: string | null;
+  frete: "CIF" | "FOB" | null;
+  peso: number | null;
+  volume: number | null;
+  observacao: string | null;
+}
+
+export function isTipoMaterial(tipo: TipoItem): boolean {
+  return tipo === "Material" || tipo === "Material TRT";
 }
 
 const _brl = new Intl.NumberFormat("pt-BR", {
@@ -74,6 +83,16 @@ export function subtotal(e: Pick<Equipment, "valor_unitario" | "quantidade">): n
 }
 
 export const MESES_PT = [
-  "Jan", "Fev", "Mar", "Abr", "Mai", "Jun",
-  "Jul", "Ago", "Set", "Out", "Nov", "Dez",
+  "Jan",
+  "Fev",
+  "Mar",
+  "Abr",
+  "Mai",
+  "Jun",
+  "Jul",
+  "Ago",
+  "Set",
+  "Out",
+  "Nov",
+  "Dez",
 ];

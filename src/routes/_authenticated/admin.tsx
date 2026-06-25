@@ -58,9 +58,7 @@ function AdminPage() {
         .eq("role", "admin");
       if (error) alert(error.message);
     } else {
-      const { error } = await supabase
-        .from("user_roles")
-        .insert({ user_id: id, role: "admin" });
+      const { error } = await supabase.from("user_roles").insert({ user_id: id, role: "admin" });
       if (error) alert(error.message);
     }
     qc.invalidateQueries({ queryKey: ["admin-profiles"] });
@@ -76,8 +74,8 @@ function AdminPage() {
       <div>
         <h1 className="text-xl font-semibold">Administração de usuários</h1>
         <p className="text-sm text-muted-foreground">
-          Aprove novos cadastros e gerencie permissões. Todos os usuários aprovados
-          compartilham a mesma base de dados.
+          Aprove novos cadastros e gerencie permissões. Todos os usuários aprovados compartilham a
+          mesma base de dados.
         </p>
       </div>
 
@@ -92,7 +90,13 @@ function AdminPage() {
             Nenhum cadastro pendente.
           </div>
         ) : (
-          <UserTable rows={pending} adminIds={adminIds} setStatus={setStatus} toggleAdmin={toggleAdmin} showApproveActions />
+          <UserTable
+            rows={pending}
+            adminIds={adminIds}
+            setStatus={setStatus}
+            toggleAdmin={toggleAdmin}
+            showApproveActions
+          />
         )}
       </section>
 
@@ -100,7 +104,12 @@ function AdminPage() {
         <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
           Usuários ({others.length})
         </h2>
-        <UserTable rows={others} adminIds={adminIds} setStatus={setStatus} toggleAdmin={toggleAdmin} />
+        <UserTable
+          rows={others}
+          adminIds={adminIds}
+          setStatus={setStatus}
+          toggleAdmin={toggleAdmin}
+        />
       </section>
     </div>
   );
