@@ -21,11 +21,11 @@ export type Database = {
           data_producao: string | null
           equipamento: string
           id: string
-          posicao: string
+          posicao: string | null
           project_id: string
           quantidade: number
           status_embarque: string
-          status_producao: string
+          status_producao: string | null
           tipo: string
           user_id: string
           valor_unitario: number
@@ -36,11 +36,11 @@ export type Database = {
           data_producao?: string | null
           equipamento?: string
           id?: string
-          posicao?: string
+          posicao?: string | null
           project_id: string
           quantidade?: number
           status_embarque?: string
-          status_producao?: string
+          status_producao?: string | null
           tipo?: string
           user_id: string
           valor_unitario?: number
@@ -51,11 +51,11 @@ export type Database = {
           data_producao?: string | null
           equipamento?: string
           id?: string
-          posicao?: string
+          posicao?: string | null
           project_id?: string
           quantidade?: number
           status_embarque?: string
-          status_producao?: string
+          status_producao?: string | null
           tipo?: string
           user_id?: string
           valor_unitario?: number
