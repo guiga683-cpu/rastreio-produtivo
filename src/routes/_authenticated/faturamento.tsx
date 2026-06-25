@@ -212,26 +212,57 @@ function FaturamentoPage() {
     const equipRows = itensConsiderados.filter((e) => e.tipo === "Equipamento");
     const matRows = itensConsiderados.filter((e) => isTipoMaterial(e.tipo));
 
-    function makeSheet(items: FatRow[]) {
-      return XLSX.utils.json_to_sheet(
-        items.map((e) => ({
-          Projeto: e.project?.name ?? "",
-          Cliente: e.project?.client ?? "",
-          Equipamento: e.equipamento,
-          Tipo: e.tipo,
-          Quantidade: e.quantidade,
-          "Valor Unitário": Number(e.valor_unitario),
-          Subtotal: subtotal(e),
-          "Data Embarque": e.data_embarque ?? "",
-          "Data Faturamento": e.data_faturamento ?? "",
-          Status: e.status_embarque,
-          Situação: e.status_embarque === "Expedido" ? "Faturado" : "Futuro",
-        })),
-      );
+    function autoWidth(rows: Record<string, unknown>[]) {
+      if (rows.length === 0) return [];
+      const keys = Object.keys(rows[0]);
+      return keys.map((k) => ({
+        wch: Math.min(
+          50,
+          Math.max(k.length, ...rows.map((r) => String(r[k] ?? "").length)) + 2,
+        ),
+      }));
     }
 
-    XLSX.utils.book_append_sheet(wb, makeSheet(equipRows), "Equipamentos");
-    XLSX.utils.book_append_sheet(wb, makeSheet(matRows), "Materiais");
+    const equipData = equipRows.map((e) => ({
+      Projeto: e.project?.name ?? "",
+      Cliente: e.project?.client ?? "",
+      Equipamento: e.equipamento,
+      Tipo: e.tipo,
+      Posição: e.posicao ?? "",
+      Qtd: e.quantidade,
+      "Valor Unitário": Number(e.valor_unitario),
+      Subtotal: subtotal(e),
+      "Data Faturamento": e.data_faturamento ?? "",
+      "Data Embarque": e.data_embarque ?? "",
+      Status: e.status_embarque,
+      Situação: e.status_embarque === "Expedido" ? "Faturado" : "Futuro",
+    }));
+    const matData = matRows.map((e) => ({
+      Projeto: e.project?.name ?? "",
+      Cliente: e.project?.client ?? "",
+      Descrição: e.equipamento,
+      Tipo: e.tipo,
+      Qtd: e.quantidade,
+      "Valor Unitário": Number(e.valor_unitario),
+      Subtotal: subtotal(e),
+      "Data Faturamento": e.data_faturamento ?? "",
+      "Data Embarque": e.data_embarque ?? "",
+      Frete: e.frete ?? "",
+      "Peso (kg)": e.peso ?? "",
+      "Volume (m³)": e.volume ?? "",
+      Observação: e.observacao ?? "",
+      Status: e.status_embarque,
+      Situação: e.status_embarque === "Expedido" ? "Faturado" : "Futuro",
+    }));
+
+    const wsE = XLSX.utils.json_to_sheet(equipData);
+    wsE["!cols"] = autoWidth(equipData);
+    XLSX.utils.book_append_sheet(wb, wsE, "Equipamentos");
+
+    const wsM = XLSX.utils.json_to_sheet(matData);
+    wsM["!cols"] = autoWidth(matData);
+    XLSX.utils.book_append_sheet(wb, wsM, "Materiais");
+
     XLSX.writeFile(wb, `faturamento_${ano}_${mes}.xlsx`);
   }
 
