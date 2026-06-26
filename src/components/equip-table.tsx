@@ -55,8 +55,11 @@ export function EquipTable({
       <table className="w-full text-xs">
         <thead className="bg-muted/60 text-muted-foreground" style={theadStyle}>
           <tr className="text-left">
-            {showProject && <th className="px-3 py-2 font-medium">Projeto</th>}
-            {showProject && <th className="px-3 py-2 font-medium">Cliente</th>}
+            {showProject && (
+              <th className="px-3 py-2 font-medium" style={{ minWidth: "130px" }}>
+                Projeto
+              </th>
+            )}
             <th className="px-3 py-2 font-medium">Equipamento</th>
             <th className="px-3 py-2 font-medium">Tipo</th>
             <th className="px-3 py-2 font-medium">Posição</th>
@@ -84,8 +87,12 @@ export function EquipTable({
             const bg = late ? "bg-row-late/60" : today_ ? "bg-row-today/60" : "hover:bg-muted/40";
             return (
               <tr key={r.id} className={`border-t ${bg}`}>
-                {showProject && <td className="px-3 py-2 font-medium">{r.project?.name}</td>}
-                {showProject && <td className="px-3 py-2">{r.project?.client}</td>}
+                {showProject && (
+                  <td className="px-3 py-2" style={{ minWidth: "130px" }}>
+                    <div className="font-medium">{r.project?.name}</div>
+                    <div className="text-[11px] text-muted-foreground">{r.project?.client}</div>
+                  </td>
+                )}
                 <td className="px-3 py-2 max-w-[420px]">
                   <div className="line-clamp-2">{r.equipamento}</div>
                 </td>
