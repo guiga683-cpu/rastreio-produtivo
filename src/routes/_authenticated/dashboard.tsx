@@ -111,7 +111,11 @@ function Dashboard() {
           </h2>
           <section className="space-y-2">
             <h3 className="text-xs font-medium text-danger">Atrasados</h3>
-            <EquipTable rows={lateEquip} empty={isLoading ? "Carregando…" : "Nenhum atraso."} />
+            <EquipTable
+              rows={lateEquip}
+              empty={isLoading ? "Carregando…" : "Nenhum atraso."}
+              stickyHeader
+            />
           </section>
           <section className="space-y-2">
             <h3 className="text-xs font-medium text-warning-foreground">Próximos 30 dias</h3>
@@ -125,7 +129,11 @@ function Dashboard() {
           </h2>
           <section className="space-y-2">
             <h3 className="text-xs font-medium text-danger">Atrasados</h3>
-            <EquipTable rows={lateMat} empty={isLoading ? "Carregando…" : "Nenhum atraso."} />
+            <EquipTable
+              rows={lateMat}
+              empty={isLoading ? "Carregando…" : "Nenhum atraso."}
+              stickyHeader
+            />
           </section>
           <section className="space-y-2">
             <h3 className="text-xs font-medium text-warning-foreground">Próximos 30 dias</h3>
@@ -142,7 +150,11 @@ function Next30Section({ rows, isLoading }: { rows: Next30Row[]; isLoading: bool
   return (
     <>
       <SortBar keys={NEXT30_SORT_KEYS} sortKey={sortKey} sortDir={sortDir} setSort={setSort} />
-      <EquipTable rows={sorted} empty={isLoading ? "Carregando…" : "Nada nos próximos 30 dias."} />
+      <EquipTable
+        rows={sorted}
+        empty={isLoading ? "Carregando…" : "Nada nos próximos 30 dias."}
+        stickyHeader
+      />
     </>
   );
 }

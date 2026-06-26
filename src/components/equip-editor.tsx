@@ -1,4 +1,5 @@
 import type { Equipment, StatusEmbarque, StatusProducao, TipoItem } from "@/lib/embarques";
+import { isTipoMaterial } from "@/lib/embarques";
 import { Trash2, Plus } from "lucide-react";
 
 export type DraftEquip = Omit<Equipment, "id" | "project_id"> & { id?: string };
@@ -36,18 +37,21 @@ export function EquipEditor({ rows, onChange }: Props) {
 
   function updateTipo(i: number, newTipo: TipoItem) {
     const patch: Partial<DraftEquip> = { tipo: newTipo };
-    if (newTipo === "Material TRT") {
+    if (isTipoMaterial(newTipo)) {
+      // Material e Material TRT não usam posição/produção
       patch.posicao = null;
       patch.data_producao = null;
       patch.status_producao = null;
-    } else {
+    } else if (rows[i].status_producao === null) {
+      // Voltando para Equipamento: restaura status de produção
+      patch.status_producao = "NOK";
+    }
+    if (newTipo !== "Material TRT") {
+      // Apenas Material TRT usa campos de logística
       patch.frete = null;
       patch.peso = null;
       patch.volume = null;
       patch.observacao = null;
-      if (rows[i].status_producao === null) {
-        patch.status_producao = "NOK";
-      }
     }
     update(i, patch);
   }
@@ -59,6 +63,7 @@ export function EquipEditor({ rows, onChange }: Props) {
     onChange([...rows, emptyRow()]);
   }
 
+  const isMaterial = (r: DraftEquip) => isTipoMaterial(r.tipo);
   const isTrt = (r: DraftEquip) => r.tipo === "Material TRT";
 
   return (
@@ -70,13 +75,13 @@ export function EquipEditor({ rows, onChange }: Props) {
               <th className="px-2 py-2 font-medium min-w-[280px]">Equipamento</th>
               <th className="px-2 py-2 font-medium">Tipo</th>
               <th className="px-2 py-2 font-medium">Posição</th>
-              <th className="px-2 py-2 font-medium">Valor Un</th>
+              <th className="px-2 py-2 font-medium">Valor</th>
               <th className="px-2 py-2 font-medium">Qtd</th>
               <th className="px-2 py-2 font-medium">Data Prod.</th>
               <th className="px-2 py-2 font-medium">Status Prod.</th>
+              <th className="px-2 py-2 font-medium">Data Faturamento</th>
               <th className="px-2 py-2 font-medium">Data Embarque</th>
               <th className="px-2 py-2 font-medium">Status Embarque</th>
-              <th className="px-2 py-2 font-medium">Data Fat.</th>
               <th className="px-2 py-2 font-medium">Frete</th>
               <th className="px-2 py-2 font-medium">Peso</th>
               <th className="px-2 py-2 font-medium">Volume</th>
@@ -107,7 +112,7 @@ export function EquipEditor({ rows, onChange }: Props) {
                   </select>
                 </td>
                 <td className="px-2 py-1.5">
-                  {isTrt(r) ? (
+                  {isMaterial(r) ? (
                     <span className="text-muted-foreground">—</span>
                   ) : (
                     <input
@@ -118,13 +123,22 @@ export function EquipEditor({ rows, onChange }: Props) {
                   )}
                 </td>
                 <td className="px-2 py-1.5">
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={r.valor_unitario}
-                    onChange={(e) => update(i, { valor_unitario: Number(e.target.value) })}
-                    className="w-28 rounded border bg-background px-2 py-1 text-right text-xs"
-                  />
+                  {isMaterial(r) ? (
+                    <input
+                      type="number"
+                      disabled
+                      value={r.valor_unitario}
+                      className="w-28 cursor-not-allowed rounded border bg-muted px-2 py-1 text-right text-xs opacity-60"
+                    />
+                  ) : (
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={r.valor_unitario}
+                      onChange={(e) => update(i, { valor_unitario: Number(e.target.value) })}
+                      className="w-28 rounded border bg-background px-2 py-1 text-right text-xs"
+                    />
+                  )}
                 </td>
                 <td className="px-2 py-1.5">
                   <input
@@ -136,7 +150,7 @@ export function EquipEditor({ rows, onChange }: Props) {
                   />
                 </td>
                 <td className="px-2 py-1.5">
-                  {isTrt(r) ? (
+                  {isMaterial(r) ? (
                     <span className="text-muted-foreground">—</span>
                   ) : (
                     <input
@@ -148,7 +162,7 @@ export function EquipEditor({ rows, onChange }: Props) {
                   )}
                 </td>
                 <td className="px-2 py-1.5">
-                  {isTrt(r) ? (
+                  {isMaterial(r) ? (
                     <span className="text-muted-foreground">—</span>
                   ) : (
                     <select
@@ -162,6 +176,14 @@ export function EquipEditor({ rows, onChange }: Props) {
                       <option value="NOK">NOK</option>
                     </select>
                   )}
+                </td>
+                <td className="px-2 py-1.5">
+                  <input
+                    type="date"
+                    value={r.data_faturamento ?? ""}
+                    onChange={(e) => update(i, { data_faturamento: e.target.value || null })}
+                    className="rounded border bg-background px-2 py-1 text-xs"
+                  />
                 </td>
                 <td className="px-2 py-1.5">
                   <input
@@ -183,14 +205,6 @@ export function EquipEditor({ rows, onChange }: Props) {
                     <option>Expedido</option>
                     <option>Cancelado</option>
                   </select>
-                </td>
-                <td className="px-2 py-1.5">
-                  <input
-                    type="date"
-                    value={r.data_faturamento ?? ""}
-                    onChange={(e) => update(i, { data_faturamento: e.target.value || null })}
-                    className="rounded border bg-background px-2 py-1 text-xs"
-                  />
                 </td>
                 <td className="px-2 py-1.5">
                   {isTrt(r) ? (
