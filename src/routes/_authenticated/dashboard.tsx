@@ -144,7 +144,11 @@ function Next30Section({
     <>
       <SortBar keys={NEXT30_SORT_KEYS} sortKey={sortKey} sortDir={sortDir} setSort={setSort} />
       <div className="max-h-[520px] overflow-auto">
-        <EquipTable rows={sorted} empty={isLoading ? "Carregando…" : (empty ?? "Sem itens.")} />
+        <EquipTable
+          rows={sorted}
+          empty={isLoading ? "Carregando…" : (empty ?? "Sem itens.")}
+          stickyHeader
+        />
       </div>
     </>
   );

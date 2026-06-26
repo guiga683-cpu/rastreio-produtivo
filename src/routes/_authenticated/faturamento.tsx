@@ -216,10 +216,7 @@ function FaturamentoPage() {
       if (rows.length === 0) return [];
       const keys = Object.keys(rows[0]);
       return keys.map((k) => ({
-        wch: Math.min(
-          50,
-          Math.max(k.length, ...rows.map((r) => String(r[k] ?? "").length)) + 2,
-        ),
+        wch: Math.min(50, Math.max(k.length, ...rows.map((r) => String(r[k] ?? "").length)) + 2),
       }));
     }
 

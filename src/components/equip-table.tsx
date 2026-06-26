@@ -1,6 +1,14 @@
 import { useState } from "react";
 import type { Equipment, Project } from "@/lib/embarques";
-import { formatBRL, daysBetween, formatDate, isLate, isToday, todayISO } from "@/lib/embarques";
+import {
+  formatBRL,
+  daysBetween,
+  formatDate,
+  isLate,
+  isToday,
+  isTipoMaterial,
+  todayISO,
+} from "@/lib/embarques";
 import { EmbarqueBadge, LateBadge, ProdBadge, TodayBadge, TipoBadge } from "@/components/badges";
 import { Copy, Check } from "lucide-react";
 
@@ -12,9 +20,15 @@ interface Props {
   rows: Row[];
   showProject?: boolean;
   empty?: string;
+  stickyHeader?: boolean;
 }
 
-export function EquipTable({ rows, showProject = true, empty = "Nenhum equipamento." }: Props) {
+export function EquipTable({
+  rows,
+  showProject = true,
+  empty = "Nenhum equipamento.",
+  stickyHeader = false,
+}: Props) {
   const today = todayISO();
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
@@ -31,10 +45,15 @@ export function EquipTable({ rows, showProject = true, empty = "Nenhum equipamen
       </div>
     );
   }
+
+  const theadStyle = stickyHeader
+    ? ({ position: "sticky", top: 0, zIndex: 10, backgroundColor: "var(--card)" } as const)
+    : undefined;
+
   return (
     <div className="overflow-x-auto rounded-md border bg-card">
       <table className="w-full text-xs">
-        <thead className="sticky top-0 z-10 bg-muted text-muted-foreground shadow-sm">
+        <thead className="bg-muted/60 text-muted-foreground" style={theadStyle}>
           <tr className="text-left">
             {showProject && <th className="px-3 py-2 font-medium">Projeto</th>}
             {showProject && <th className="px-3 py-2 font-medium">Cliente</th>}
@@ -47,9 +66,9 @@ export function EquipTable({ rows, showProject = true, empty = "Nenhum equipamen
             <th className="px-3 py-2 text-right font-medium">Qtd</th>
             <th className="px-3 py-2 font-medium">Data Prod.</th>
             <th className="px-3 py-2 font-medium">Status Prod.</th>
+            <th className="px-3 py-2 font-medium">Data Faturamento</th>
             <th className="px-3 py-2 font-medium">Data Embarque</th>
             <th className="px-3 py-2 font-medium">Status Embarque</th>
-            <th className="px-3 py-2 font-medium">Data Fat.</th>
             <th className="px-3 py-2 font-medium">Frete</th>
             <th className="px-3 py-2 text-right font-medium">Peso</th>
             <th className="px-3 py-2 text-right font-medium">Volume</th>
@@ -60,6 +79,7 @@ export function EquipTable({ rows, showProject = true, empty = "Nenhum equipamen
           {rows.map((r) => {
             const late = isLate(r, today);
             const today_ = isToday(r, today);
+            const mat = isTipoMaterial(r.tipo);
             const trt = r.tipo === "Material TRT";
             const bg = late ? "bg-row-late/60" : today_ ? "bg-row-today/60" : "hover:bg-muted/40";
             return (
@@ -72,21 +92,22 @@ export function EquipTable({ rows, showProject = true, empty = "Nenhum equipamen
                 <td className="px-3 py-2">
                   <TipoBadge value={r.tipo} />
                 </td>
-                <td className="px-3 py-2">{trt ? "—" : r.posicao || "—"}</td>
+                <td className="px-3 py-2">{mat ? "—" : r.posicao || "—"}</td>
                 <td className="px-3 py-2 text-right tabular-nums whitespace-nowrap min-w-[110px]">
-                  {formatBRL(r.valor_unitario)}
+                  {mat ? r.valor_unitario : formatBRL(r.valor_unitario)}
                 </td>
                 <td className="px-3 py-2 text-right tabular-nums">{r.quantidade}</td>
                 <td className="px-3 py-2 whitespace-nowrap">
-                  {trt ? "—" : formatDate(r.data_producao)}
+                  {mat ? "—" : formatDate(r.data_producao)}
                 </td>
                 <td className="px-3 py-2">
-                  {trt ? (
+                  {mat ? (
                     <span className="text-muted-foreground">—</span>
                   ) : (
                     <ProdBadge value={r.status_producao} />
                   )}
                 </td>
+                <td className="px-3 py-2 whitespace-nowrap">{formatDate(r.data_faturamento)}</td>
                 <td className="px-3 py-2 whitespace-nowrap">
                   <div className="flex items-center gap-1.5">
                     {formatDate(r.data_embarque)}
@@ -99,7 +120,6 @@ export function EquipTable({ rows, showProject = true, empty = "Nenhum equipamen
                 <td className="px-3 py-2">
                   <EmbarqueBadge value={r.status_embarque} />
                 </td>
-                <td className="px-3 py-2 whitespace-nowrap">{formatDate(r.data_faturamento)}</td>
                 <td className="px-3 py-2">{trt ? (r.frete ?? "—") : "—"}</td>
                 <td className="px-3 py-2 text-right tabular-nums">{trt ? (r.peso ?? "—") : "—"}</td>
                 <td className="px-3 py-2 text-right tabular-nums">
