@@ -63,7 +63,6 @@ export function EquipEditor({ rows, onChange }: Props) {
     onChange([...rows, emptyRow()]);
   }
 
-  const isMaterial = (r: DraftEquip) => isTipoMaterial(r.tipo);
   const isTrt = (r: DraftEquip) => r.tipo === "Material TRT";
 
   return (
@@ -112,33 +111,21 @@ export function EquipEditor({ rows, onChange }: Props) {
                   </select>
                 </td>
                 <td className="px-2 py-1.5">
-                  {isMaterial(r) ? (
-                    <span className="text-muted-foreground">—</span>
-                  ) : (
-                    <input
-                      value={r.posicao ?? ""}
-                      onChange={(e) => update(i, { posicao: e.target.value })}
-                      className="w-24 rounded border bg-background px-2 py-1 text-xs"
-                    />
-                  )}
+                  <input
+                    value={r.posicao ?? ""}
+                    disabled={r.tipo !== "Equipamento"}
+                    onChange={(e) => update(i, { posicao: e.target.value })}
+                    className={`w-24 rounded border px-2 py-1 text-xs ${r.tipo !== "Equipamento" ? "bg-muted opacity-60 cursor-not-allowed" : "bg-background"}`}
+                  />
                 </td>
                 <td className="px-2 py-1.5">
-                  {isMaterial(r) ? (
-                    <input
-                      type="number"
-                      disabled
-                      value={r.valor_unitario}
-                      className="w-28 cursor-not-allowed rounded border bg-muted px-2 py-1 text-right text-xs opacity-60"
-                    />
-                  ) : (
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={r.valor_unitario}
-                      onChange={(e) => update(i, { valor_unitario: Number(e.target.value) })}
-                      className="w-28 rounded border bg-background px-2 py-1 text-right text-xs"
-                    />
-                  )}
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={r.valor_unitario}
+                    onChange={(e) => update(i, { valor_unitario: Number(e.target.value) })}
+                    className="w-28 rounded border bg-background px-2 py-1 text-right text-xs"
+                  />
                 </td>
                 <td className="px-2 py-1.5">
                   <input
@@ -150,32 +137,26 @@ export function EquipEditor({ rows, onChange }: Props) {
                   />
                 </td>
                 <td className="px-2 py-1.5">
-                  {isMaterial(r) ? (
-                    <span className="text-muted-foreground">—</span>
-                  ) : (
-                    <input
-                      type="date"
-                      value={r.data_producao ?? ""}
-                      onChange={(e) => update(i, { data_producao: e.target.value || null })}
-                      className="rounded border bg-background px-2 py-1 text-xs"
-                    />
-                  )}
+                  <input
+                    type="date"
+                    value={r.data_producao ?? ""}
+                    disabled={r.tipo !== "Equipamento"}
+                    onChange={(e) => update(i, { data_producao: e.target.value || null })}
+                    className={`rounded border px-2 py-1 text-xs ${r.tipo !== "Equipamento" ? "bg-muted opacity-60 cursor-not-allowed" : "bg-background"}`}
+                  />
                 </td>
                 <td className="px-2 py-1.5">
-                  {isMaterial(r) ? (
-                    <span className="text-muted-foreground">—</span>
-                  ) : (
-                    <select
-                      value={r.status_producao ?? "NOK"}
-                      onChange={(e) =>
-                        update(i, { status_producao: e.target.value as StatusProducao })
-                      }
-                      className="rounded border bg-background px-2 py-1 text-xs"
-                    >
-                      <option value="OK">OK</option>
-                      <option value="NOK">NOK</option>
-                    </select>
-                  )}
+                  <select
+                    value={r.status_producao ?? "NOK"}
+                    disabled={r.tipo !== "Equipamento"}
+                    onChange={(e) =>
+                      update(i, { status_producao: e.target.value as StatusProducao })
+                    }
+                    className={`rounded border px-2 py-1 text-xs ${r.tipo !== "Equipamento" ? "bg-muted opacity-60 cursor-not-allowed" : "bg-background"}`}
+                  >
+                    <option value="OK">OK</option>
+                    <option value="NOK">NOK</option>
+                  </select>
                 </td>
                 <td className="px-2 py-1.5">
                   <input

@@ -92,20 +92,24 @@ export function EquipTable({
                 <td className="px-3 py-2">
                   <TipoBadge value={r.tipo} />
                 </td>
-                <td className="px-3 py-2">{mat ? "—" : r.posicao || "—"}</td>
+                <td className={`px-3 py-2 ${mat ? "text-muted-foreground/40" : ""}`}>
+                  {mat ? (r.posicao ?? "") : r.posicao || "—"}
+                </td>
                 <td className="px-3 py-2 text-right tabular-nums whitespace-nowrap min-w-[110px]">
-                  {mat ? r.valor_unitario : formatBRL(r.valor_unitario)}
+                  {formatBRL(r.valor_unitario)}
                 </td>
                 <td className="px-3 py-2 text-right tabular-nums">{r.quantidade}</td>
-                <td className="px-3 py-2 whitespace-nowrap">
-                  {mat ? "—" : formatDate(r.data_producao)}
+                <td
+                  className={`px-3 py-2 whitespace-nowrap ${mat ? "text-muted-foreground/40" : ""}`}
+                >
+                  {mat
+                    ? r.data_producao
+                      ? formatDate(r.data_producao)
+                      : ""
+                    : formatDate(r.data_producao)}
                 </td>
-                <td className="px-3 py-2">
-                  {mat ? (
-                    <span className="text-muted-foreground">—</span>
-                  ) : (
-                    <ProdBadge value={r.status_producao} />
-                  )}
+                <td className={`px-3 py-2 ${mat ? "text-muted-foreground/40" : ""}`}>
+                  {mat ? (r.status_producao ?? "") : <ProdBadge value={r.status_producao} />}
                 </td>
                 <td className="px-3 py-2 whitespace-nowrap">{formatDate(r.data_faturamento)}</td>
                 <td className="px-3 py-2 whitespace-nowrap">
