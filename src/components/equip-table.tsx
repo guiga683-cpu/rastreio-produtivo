@@ -94,7 +94,9 @@ export function EquipTable({
                   </td>
                 )}
                 <td className="px-3 py-2 max-w-[420px]">
-                  <div className="line-clamp-2">{r.equipamento}</div>
+                  <div className="line-clamp-2" title={r.equipamento}>
+                    {r.equipamento}
+                  </div>
                 </td>
                 <td className="px-3 py-2">
                   <TipoBadge value={r.tipo} />
