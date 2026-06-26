@@ -342,7 +342,7 @@ function FaturamentoPage() {
           />
           <MultiSelect
             label="Projeto"
-            options={projects.map((p) => ({ value: p.id, label: p.name }))}
+            options={projects.map((p) => ({ value: p.id, label: p.client }))}
             selected={projetosFiltro}
             onChange={setProjetosFiltro}
             allLabel="Todos os projetos"
