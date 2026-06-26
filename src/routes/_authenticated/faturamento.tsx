@@ -15,6 +15,7 @@ import {
   MESES_PT,
 } from "@/lib/embarques";
 import { TipoBadge, EmbarqueBadge } from "@/components/badges";
+import { MultiSelect } from "@/components/multi-select";
 
 export const Route = createFileRoute("/_authenticated/faturamento")({
   head: () => ({ meta: [{ title: "Faturamento — Embarques" }] }),
@@ -22,6 +23,27 @@ export const Route = createFileRoute("/_authenticated/faturamento")({
 });
 
 type FatRow = Equipment & { project?: Project };
+
+function toExcelDate(dateStr: string | null): number | "" {
+  if (!dateStr) return "";
+  const date = new Date(dateStr + "T00:00:00");
+  const excelEpoch = new Date(1899, 11, 30);
+  return Math.round((date.getTime() - excelEpoch.getTime()) / 86400000);
+}
+
+function formatDateCols(ws: XLSX.WorkSheet, cols: string[], rowCount: number) {
+  const fmt = "dd/mm/yyyy";
+  for (const col of cols) {
+    for (let row = 2; row <= rowCount + 1; row++) {
+      const ref = `${col}${row}`;
+      const cell = ws[ref];
+      if (cell && cell.v !== "") {
+        cell.t = "n";
+        cell.z = fmt;
+      }
+    }
+  }
+}
 
 function FaturamentoPage() {
   const qc = useQueryClient();
@@ -44,8 +66,8 @@ function FaturamentoPage() {
     },
   });
 
-  const projects = data?.projects ?? [];
-  const equipments = data?.equipments ?? [];
+  const projects = useMemo(() => data?.projects ?? [], [data]);
+  const equipments = useMemo(() => data?.equipments ?? [], [data]);
   const metas = data?.metas ?? [];
 
   const pById = useMemo(() => new Map(projects.map((p) => [p.id, p])), [projects]);
@@ -59,27 +81,13 @@ function FaturamentoPage() {
     return Array.from(s).sort((a, b) => b - a);
   }, [equipments]);
 
-  const currentYear = new Date().getFullYear();
-  const [ano, setAno] = useState<string>(String(currentYear));
-  const [projetoId, setProjetoId] = useState<string>("Todos");
+  const [anosFiltro, setAnosFiltro] = useState<Set<string>>(new Set());
+  const [projetosFiltro, setProjetosFiltro] = useState<Set<string>>(new Set());
+  const [mesesFiltro, setMesesFiltro] = useState<Set<string>>(new Set());
   const [tiposFiltro, setTiposFiltro] = useState<Set<TipoItem>>(
     new Set(["Equipamento", "Material", "Material TRT"]),
   );
-  const [mes, setMes] = useState<string>("Todos");
   const [mostrarFuturo, setMostrarFuturo] = useState(false);
-
-  function toggleTipo(t: TipoItem) {
-    setTiposFiltro((prev) => {
-      const next = new Set(prev);
-      if (next.has(t)) next.delete(t);
-      else next.add(t);
-      return next;
-    });
-  }
-
-  useEffect(() => {
-    setMes("Todos");
-  }, [ano]);
 
   const baseItens = useMemo<FatRow[]>(() => {
     return equipments
@@ -88,8 +96,13 @@ function FaturamentoPage() {
   }, [equipments, pById]);
 
   const aplicarFiltrosBase = (item: FatRow) => {
-    if (ano !== "Todos" && item.data_embarque!.slice(0, 4) !== ano) return false;
-    if (projetoId !== "Todos" && item.project_id !== projetoId) return false;
+    if (
+      anosFiltro.size > 0 &&
+      item.data_embarque &&
+      !anosFiltro.has(item.data_embarque.slice(0, 4))
+    )
+      return false;
+    if (projetosFiltro.size > 0 && !projetosFiltro.has(item.project_id)) return false;
     if (!tiposFiltro.has(item.tipo)) return false;
     return true;
   };
@@ -101,16 +114,38 @@ function FaturamentoPage() {
     });
     return Array.from(s).sort((a, b) => a - b);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [baseItens, ano, projetoId, tiposFiltro]);
+  }, [baseItens, anosFiltro, projetosFiltro, tiposFiltro]);
+
+  useEffect(() => {
+    if (anosDisponiveis.length > 0 && anosFiltro.size === 0) {
+      setAnosFiltro(new Set(anosDisponiveis.map(String)));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [anosDisponiveis]);
+
+  useEffect(() => {
+    if (projects.length > 0 && projetosFiltro.size === 0) {
+      setProjetosFiltro(new Set(projects.map((p) => p.id)));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projects]);
+
+  useEffect(() => {
+    if (mesesDisponiveis.length > 0) {
+      setMesesFiltro(new Set(mesesDisponiveis.map((m) => String(m).padStart(2, "0"))));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [anosDisponiveis]);
 
   const itensFiltrados = useMemo<FatRow[]>(() => {
     return baseItens.filter((e) => {
       if (!aplicarFiltrosBase(e)) return false;
-      if (mes !== "Todos" && e.data_embarque!.slice(5, 7) !== mes) return false;
+      if (mesesFiltro.size > 0 && e.data_embarque && !mesesFiltro.has(e.data_embarque.slice(5, 7)))
+        return false;
       return true;
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [baseItens, ano, projetoId, tiposFiltro, mes]);
+  }, [baseItens, anosFiltro, projetosFiltro, tiposFiltro, mesesFiltro]);
 
   const itensConsiderados = mostrarFuturo
     ? itensFiltrados
@@ -159,44 +194,46 @@ function FaturamentoPage() {
     return arr.filter((s) => s.value > 0);
   }, [itensFiltrados, mostrarFuturo]);
 
+  const singleAno = anosFiltro.size === 1 ? Array.from(anosFiltro)[0] : null;
+
   const monthly = useMemo(() => {
     const arr = MESES_PT.map(() => ({ fat: 0, fut: 0 }));
-    if (ano === "Todos") return arr;
+    if (!singleAno) return arr;
     itensFiltrados.forEach((e) => {
-      if (e.data_embarque!.slice(0, 4) !== ano) return;
+      if (e.data_embarque!.slice(0, 4) !== singleAno) return;
       const m = Number(e.data_embarque!.slice(5, 7)) - 1;
       const v = subtotal(e);
       if (e.status_embarque === "Expedido") arr[m].fat += v;
       else if (mostrarFuturo) arr[m].fut += v;
     });
     return arr;
-  }, [itensFiltrados, ano, mostrarFuturo]);
+  }, [itensFiltrados, singleAno, mostrarFuturo]);
   const maxMonthly = Math.max(1, ...monthly.map((m) => m.fat + m.fut));
 
-  const metaAtual = metas.find((m) => m.ano === Number(ano))?.valor ?? 0;
+  const metaAtual = singleAno ? (metas.find((m) => m.ano === Number(singleAno))?.valor ?? 0) : 0;
   const [metaInput, setMetaInput] = useState<string>("");
   useEffect(() => {
     setMetaInput(metaAtual ? String(metaAtual) : "");
-  }, [ano, metaAtual]);
+  }, [singleAno, metaAtual]);
 
   async function salvarMeta() {
-    if (ano === "Todos") return;
+    if (!singleAno) return;
     const v = Number(metaInput) || 0;
     const { data: u } = await supabase.auth.getUser();
     if (!u.user) return;
     const { error } = await supabase
       .from("metas_faturamento")
-      .upsert({ user_id: u.user.id, ano: Number(ano), valor: v }, { onConflict: "ano" });
+      .upsert({ user_id: u.user.id, ano: Number(singleAno), valor: v }, { onConflict: "ano" });
     if (error) alert(error.message);
     else qc.invalidateQueries({ queryKey: ["fat-data"] });
   }
 
   const faturadoDoAno = useMemo(() => {
-    if (ano === "Todos") return 0;
+    if (!singleAno) return 0;
     return baseItens
-      .filter((e) => e.status_embarque === "Expedido" && e.data_embarque!.slice(0, 4) === ano)
+      .filter((e) => e.status_embarque === "Expedido" && e.data_embarque!.slice(0, 4) === singleAno)
       .reduce((s, i) => s + subtotal(i), 0);
-  }, [baseItens, ano]);
+  }, [baseItens, singleAno]);
 
   const pctMeta = metaAtual > 0 ? Math.min(100, (faturadoDoAno / metaAtual) * 100) : 0;
   const faltaMeta = Math.max(0, metaAtual - faturadoDoAno);
@@ -229,8 +266,8 @@ function FaturamentoPage() {
       Qtd: e.quantidade,
       "Valor Unitário": Number(e.valor_unitario),
       Subtotal: subtotal(e),
-      "Data Faturamento": e.data_faturamento ?? "",
-      "Data Embarque": e.data_embarque ?? "",
+      "Data Faturamento": toExcelDate(e.data_faturamento),
+      "Data Embarque": toExcelDate(e.data_embarque),
       Status: e.status_embarque,
       Situação: e.status_embarque === "Expedido" ? "Faturado" : "Futuro",
     }));
@@ -242,8 +279,8 @@ function FaturamentoPage() {
       Qtd: e.quantidade,
       "Valor Unitário": Number(e.valor_unitario),
       Subtotal: subtotal(e),
-      "Data Faturamento": e.data_faturamento ?? "",
-      "Data Embarque": e.data_embarque ?? "",
+      "Data Faturamento": toExcelDate(e.data_faturamento),
+      "Data Embarque": toExcelDate(e.data_embarque),
       Frete: e.frete ?? "",
       "Peso (kg)": e.peso ?? "",
       "Volume (m³)": e.volume ?? "",
@@ -254,13 +291,23 @@ function FaturamentoPage() {
 
     const wsE = XLSX.utils.json_to_sheet(equipData);
     wsE["!cols"] = autoWidth(equipData);
+    formatDateCols(wsE, ["I", "J"], equipData.length);
     XLSX.utils.book_append_sheet(wb, wsE, "Equipamentos");
 
     const wsM = XLSX.utils.json_to_sheet(matData);
     wsM["!cols"] = autoWidth(matData);
+    formatDateCols(wsM, ["H", "I"], matData.length);
     XLSX.utils.book_append_sheet(wb, wsM, "Materiais");
 
-    XLSX.writeFile(wb, `faturamento_${ano}_${mes}.xlsx`);
+    const anoLabel =
+      anosFiltro.size === anosDisponiveis.length || anosFiltro.size === 0
+        ? "todos"
+        : Array.from(anosFiltro).sort().join("-");
+    const mesLabel =
+      mesesFiltro.size === 12 || mesesFiltro.size === 0
+        ? "todos"
+        : Array.from(mesesFiltro).sort().join("-");
+    XLSX.writeFile(wb, `faturamento_${anoLabel}_${mesLabel}.xlsx`);
   }
 
   return (
@@ -286,48 +333,41 @@ function FaturamentoPage() {
       {/* Filtros + Pizza */}
       <div className="space-y-4 rounded-lg border bg-card p-5 shadow-sm">
         <div className="flex flex-wrap items-end gap-3">
-          <FiltroSelect label="Ano" value={ano} onChange={setAno}>
-            <option value="Todos">Todos os anos</option>
-            {anosDisponiveis.map((a) => (
-              <option key={a} value={String(a)}>
-                {a}
-              </option>
-            ))}
-          </FiltroSelect>
-          <FiltroSelect label="Projeto" value={projetoId} onChange={setProjetoId}>
-            <option value="Todos">Todos os projetos</option>
-            {projects.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name} — {p.client}
-              </option>
-            ))}
-          </FiltroSelect>
-          <div>
-            <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-              Tipo
-            </label>
-            <div className="flex h-9 items-center gap-3 rounded-md border bg-background px-3">
-              {(["Equipamento", "Material", "Material TRT"] as TipoItem[]).map((t) => (
-                <label key={t} className="flex items-center gap-1.5 text-sm whitespace-nowrap">
-                  <input
-                    type="checkbox"
-                    checked={tiposFiltro.has(t)}
-                    onChange={() => toggleTipo(t)}
-                    className="h-4 w-4"
-                  />
-                  {t}
-                </label>
-              ))}
-            </div>
-          </div>
-          <FiltroSelect label="Mês" value={mes} onChange={setMes}>
-            <option value="Todos">Todos os meses</option>
-            {mesesDisponiveis.map((m) => (
-              <option key={m} value={String(m).padStart(2, "0")}>
-                {MESES_PT[m - 1]}
-              </option>
-            ))}
-          </FiltroSelect>
+          <MultiSelect
+            label="Ano"
+            options={anosDisponiveis.map((a) => ({ value: String(a), label: String(a) }))}
+            selected={anosFiltro}
+            onChange={setAnosFiltro}
+            allLabel="Todos os anos"
+          />
+          <MultiSelect
+            label="Projeto"
+            options={projects.map((p) => ({ value: p.id, label: p.name }))}
+            selected={projetosFiltro}
+            onChange={setProjetosFiltro}
+            allLabel="Todos os projetos"
+          />
+          <MultiSelect
+            label="Mês"
+            options={MESES_PT.map((m, i) => ({
+              value: String(i + 1).padStart(2, "0"),
+              label: m,
+            }))}
+            selected={mesesFiltro}
+            onChange={setMesesFiltro}
+            allLabel="Todos os meses"
+          />
+          <MultiSelect<TipoItem>
+            label="Tipo"
+            options={[
+              { value: "Equipamento", label: "Equipamento" },
+              { value: "Material", label: "Material" },
+              { value: "Material TRT", label: "Material TRT" },
+            ]}
+            selected={tiposFiltro}
+            onChange={setTiposFiltro}
+            allLabel="Todos os tipos"
+          />
           <label className="flex h-9 items-center gap-2 rounded-md border bg-background px-3 text-sm">
             <input
               type="checkbox"
@@ -374,14 +414,14 @@ function FaturamentoPage() {
           <div className="flex flex-wrap items-end gap-4">
             <div>
               <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                Meta de faturamento ({ano === "Todos" ? "ano" : ano})
+                Meta de faturamento ({singleAno ?? "ano"})
               </label>
               <input
                 type="number"
                 value={metaInput}
                 onChange={(e) => setMetaInput(e.target.value)}
                 onBlur={salvarMeta}
-                disabled={ano === "Todos"}
+                disabled={!singleAno}
                 placeholder="0"
                 className="w-48 rounded-md border bg-background px-3 py-1.5 text-sm disabled:opacity-50"
               />
@@ -394,7 +434,7 @@ function FaturamentoPage() {
                 />
               </div>
               <div className="mt-1.5 text-xs text-muted-foreground">
-                {ano === "Todos" ? (
+                {!singleAno ? (
                   "Selecione um ano específico para definir a meta."
                 ) : metaAtual === 0 ? (
                   "Defina uma meta para acompanhar o progresso."
@@ -421,7 +461,7 @@ function FaturamentoPage() {
         <p className="mb-3 text-xs text-muted-foreground">
           Faturado (sólido) e futuro (50% transparência) ao longo do ano selecionado.
         </p>
-        {ano === "Todos" ? (
+        {!singleAno ? (
           <div className="text-xs text-muted-foreground">
             Selecione um ano específico para visualizar o gráfico mensal.
           </div>
@@ -560,33 +600,6 @@ function FaturamentoPage() {
           </table>
         </div>
       </div>
-    </div>
-  );
-}
-
-function FiltroSelect({
-  label,
-  value,
-  onChange,
-  children,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <div>
-      <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-        {label}
-      </label>
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="h-9 min-w-[160px] rounded-md border bg-background px-2 text-sm"
-      >
-        {children}
-      </select>
     </div>
   );
 }

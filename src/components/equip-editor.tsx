@@ -46,8 +46,7 @@ export function EquipEditor({ rows, onChange }: Props) {
       // Voltando para Equipamento: restaura status de produção
       patch.status_producao = "NOK";
     }
-    if (newTipo !== "Material TRT") {
-      // Apenas Material TRT usa campos de logística
+    if (!isTipoMaterial(newTipo)) {
       patch.frete = null;
       patch.peso = null;
       patch.volume = null;
@@ -62,8 +61,6 @@ export function EquipEditor({ rows, onChange }: Props) {
   function add() {
     onChange([...rows, emptyRow()]);
   }
-
-  const isTrt = (r: DraftEquip) => r.tipo === "Material TRT";
 
   return (
     <div className="space-y-2">
@@ -188,63 +185,51 @@ export function EquipEditor({ rows, onChange }: Props) {
                   </select>
                 </td>
                 <td className="px-2 py-1.5">
-                  {isTrt(r) ? (
-                    <select
-                      value={r.frete ?? ""}
-                      onChange={(e) =>
-                        update(i, { frete: (e.target.value || null) as DraftEquip["frete"] })
-                      }
-                      className="rounded border bg-background px-2 py-1 text-xs"
-                    >
-                      <option value="">—</option>
-                      <option value="CIF">CIF</option>
-                      <option value="FOB">FOB</option>
-                    </select>
-                  ) : (
-                    <span className="text-muted-foreground">—</span>
-                  )}
+                  <select
+                    value={r.frete ?? ""}
+                    disabled={r.tipo === "Equipamento"}
+                    onChange={(e) =>
+                      update(i, { frete: (e.target.value || null) as DraftEquip["frete"] })
+                    }
+                    className={`rounded border px-2 py-1 text-xs ${r.tipo === "Equipamento" ? "bg-muted opacity-60 cursor-not-allowed" : "bg-background"}`}
+                  >
+                    <option value="">—</option>
+                    <option value="CIF">CIF</option>
+                    <option value="FOB">FOB</option>
+                  </select>
                 </td>
                 <td className="px-2 py-1.5">
-                  {isTrt(r) ? (
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={r.peso ?? ""}
-                      onChange={(e) =>
-                        update(i, { peso: e.target.value ? Number(e.target.value) : null })
-                      }
-                      className="w-20 rounded border bg-background px-2 py-1 text-right text-xs"
-                    />
-                  ) : (
-                    <span className="text-muted-foreground">—</span>
-                  )}
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={r.peso ?? ""}
+                    disabled={r.tipo === "Equipamento"}
+                    onChange={(e) =>
+                      update(i, { peso: e.target.value ? Number(e.target.value) : null })
+                    }
+                    className={`w-20 rounded border px-2 py-1 text-right text-xs ${r.tipo === "Equipamento" ? "bg-muted opacity-60 cursor-not-allowed" : "bg-background"}`}
+                  />
                 </td>
                 <td className="px-2 py-1.5">
-                  {isTrt(r) ? (
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={r.volume ?? ""}
-                      onChange={(e) =>
-                        update(i, { volume: e.target.value ? Number(e.target.value) : null })
-                      }
-                      className="w-20 rounded border bg-background px-2 py-1 text-right text-xs"
-                    />
-                  ) : (
-                    <span className="text-muted-foreground">—</span>
-                  )}
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={r.volume ?? ""}
+                    disabled={r.tipo === "Equipamento"}
+                    onChange={(e) =>
+                      update(i, { volume: e.target.value ? Number(e.target.value) : null })
+                    }
+                    className={`w-20 rounded border px-2 py-1 text-right text-xs ${r.tipo === "Equipamento" ? "bg-muted opacity-60 cursor-not-allowed" : "bg-background"}`}
+                  />
                 </td>
                 <td className="px-2 py-1.5">
-                  {isTrt(r) ? (
-                    <textarea
-                      rows={2}
-                      value={r.observacao ?? ""}
-                      onChange={(e) => update(i, { observacao: e.target.value || null })}
-                      className="w-32 resize-y rounded border bg-background px-2 py-1 text-xs"
-                    />
-                  ) : (
-                    <span className="text-muted-foreground">—</span>
-                  )}
+                  <textarea
+                    rows={2}
+                    value={r.observacao ?? ""}
+                    disabled={r.tipo === "Equipamento"}
+                    onChange={(e) => update(i, { observacao: e.target.value || null })}
+                    className={`w-32 resize-y rounded border px-2 py-1 text-xs ${r.tipo === "Equipamento" ? "bg-muted opacity-60 cursor-not-allowed" : "bg-background"}`}
+                  />
                 </td>
                 <td className="px-2 py-1.5">
                   <button
