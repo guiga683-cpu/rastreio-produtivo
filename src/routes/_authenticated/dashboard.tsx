@@ -104,57 +104,52 @@ function Dashboard() {
         <LegendDot color="bg-card border" label="Dentro do prazo" />
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <div className="space-y-4">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-            Equipamentos
-          </h2>
-          <section className="space-y-2">
-            <h3 className="text-xs font-medium text-danger">Atrasados</h3>
-            <EquipTable
-              rows={lateEquip}
-              empty={isLoading ? "Carregando…" : "Nenhum atraso."}
-              stickyHeader
-            />
-          </section>
-          <section className="space-y-2">
-            <h3 className="text-xs font-medium text-warning-foreground">Próximos 30 dias</h3>
-            <Next30Section rows={next30Equip} isLoading={isLoading} />
-          </section>
-        </div>
+      <section className="space-y-2">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          Materiais — Próximos 30 dias (inclui atrasados)
+        </h2>
+        <Next30Section
+          rows={[...matEnriched.filter((e) => isLate(e)), ...next30Mat]}
+          isLoading={isLoading}
+          empty="Nada nos próximos 30 dias."
+        />
+      </section>
 
-        <div className="space-y-4">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-            Materiais
-          </h2>
-          <section className="space-y-2">
-            <h3 className="text-xs font-medium text-danger">Atrasados</h3>
-            <EquipTable
-              rows={lateMat}
-              empty={isLoading ? "Carregando…" : "Nenhum atraso."}
-              stickyHeader
-            />
-          </section>
-          <section className="space-y-2">
-            <h3 className="text-xs font-medium text-warning-foreground">Próximos 30 dias</h3>
-            <Next30Section rows={next30Mat} isLoading={isLoading} />
-          </section>
-        </div>
-      </div>
+      <section className="space-y-2">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          Equipamentos — Próximos 30 dias (inclui atrasados)
+        </h2>
+        <Next30Section
+          rows={[...equipEnriched.filter((e) => isLate(e)), ...next30Equip]}
+          isLoading={isLoading}
+          empty="Nada nos próximos 30 dias."
+        />
+      </section>
     </div>
   );
 }
 
-function Next30Section({ rows, isLoading }: { rows: Next30Row[]; isLoading: boolean }) {
-  const { sorted, sortKey, sortDir, setSort } = useSortedRows(rows, NEXT30_SORT_KEYS, "data");
+function Next30Section({
+  rows,
+  isLoading,
+  empty,
+}: {
+  rows: Next30Row[];
+  isLoading: boolean;
+  empty?: string;
+}) {
+  const dedup = Array.from(new Map(rows.map((r) => [r.id, r])).values());
+  const { sorted, sortKey, sortDir, setSort } = useSortedRows(dedup, NEXT30_SORT_KEYS, "data");
   return (
     <>
       <SortBar keys={NEXT30_SORT_KEYS} sortKey={sortKey} sortDir={sortDir} setSort={setSort} />
-      <EquipTable
-        rows={sorted}
-        empty={isLoading ? "Carregando…" : "Nada nos próximos 30 dias."}
-        stickyHeader
-      />
+      <div className="max-h-[520px] overflow-auto">
+        <EquipTable
+          rows={sorted}
+          empty={isLoading ? "Carregando…" : (empty ?? "Sem itens.")}
+          stickyHeader
+        />
+      </div>
     </>
   );
 }
