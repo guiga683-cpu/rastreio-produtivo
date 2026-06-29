@@ -34,6 +34,7 @@ export function EquipTable({
   const today = todayISO();
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const { sortCriteria, handleSort, sortData } = useSort<Row>({
+    posicao: "number",
     valor_unitario: "number",
     quantidade: "number",
     data_producao: "date",
