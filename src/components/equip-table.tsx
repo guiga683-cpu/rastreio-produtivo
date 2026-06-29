@@ -11,6 +11,8 @@ import {
 } from "@/lib/embarques";
 import { EmbarqueBadge, LateBadge, ProdBadge, TodayBadge, TipoBadge } from "@/components/badges";
 import { Copy, Check } from "lucide-react";
+import { useSort } from "@/hooks/useSort";
+import { SortableHeader } from "@/components/sortable-header";
 
 interface Row extends Equipment {
   project?: Project;
@@ -31,6 +33,12 @@ export function EquipTable({
 }: Props) {
   const today = todayISO();
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const { sortCriteria, handleSort, sortData } = useSort<Row>({
+    valor_unitario: "number",
+    quantidade: "number",
+    data_producao: "date",
+    data_embarque: "date",
+  });
 
   function copyObs(id: string, text: string) {
     navigator.clipboard.writeText(text);
@@ -60,18 +68,74 @@ export function EquipTable({
                 Projeto
               </th>
             )}
-            <th className="px-3 py-2 font-medium">Equipamento</th>
-            <th className="px-3 py-2 font-medium">Tipo</th>
-            <th className="px-3 py-2 font-medium">Posição</th>
-            <th className="px-3 py-2 text-right font-medium whitespace-nowrap min-w-[110px]">
-              Valor
+            <th className="px-3 py-2 font-medium">
+              <SortableHeader
+                column="equipamento"
+                label="Equipamento"
+                sortCriteria={sortCriteria}
+                onSort={handleSort}
+              />
             </th>
-            <th className="px-3 py-2 text-right font-medium">Qtd</th>
-            <th className="px-3 py-2 font-medium">Data Prod.</th>
-            <th className="px-3 py-2 font-medium">Status Prod.</th>
+            <th className="px-3 py-2 font-medium">
+              <SortableHeader column="tipo" label="Tipo" sortCriteria={sortCriteria} onSort={handleSort} />
+            </th>
+            <th className="px-3 py-2 font-medium">
+              <SortableHeader
+                column="posicao"
+                label="Posição"
+                sortCriteria={sortCriteria}
+                onSort={handleSort}
+              />
+            </th>
+            <th className="px-3 py-2 text-right font-medium whitespace-nowrap min-w-[110px]">
+              <SortableHeader
+                column="valor_unitario"
+                label="Valor"
+                sortCriteria={sortCriteria}
+                onSort={handleSort}
+              />
+            </th>
+            <th className="px-3 py-2 text-right font-medium">
+              <SortableHeader
+                column="quantidade"
+                label="Qtd"
+                sortCriteria={sortCriteria}
+                onSort={handleSort}
+              />
+            </th>
+            <th className="px-3 py-2 font-medium">
+              <SortableHeader
+                column="data_producao"
+                label="Data Prod."
+                sortCriteria={sortCriteria}
+                onSort={handleSort}
+              />
+            </th>
+            <th className="px-3 py-2 font-medium">
+              <SortableHeader
+                column="status_producao"
+                label="Status Prod."
+                sortCriteria={sortCriteria}
+                onSort={handleSort}
+              />
+            </th>
             <th className="px-3 py-2 font-medium">Data Faturamento</th>
-            <th className="px-3 py-2 font-medium">Data Embarque</th>
-            <th className="px-3 py-2 font-medium">Status Embarque</th>
+            <th className="px-3 py-2 font-medium">
+              <SortableHeader
+                column="data_embarque"
+                label="Data Embarque"
+                sortCriteria={sortCriteria}
+                onSort={handleSort}
+              />
+            </th>
+            <th className="px-3 py-2 font-medium">
+              <SortableHeader
+                column="status_embarque"
+                label="Status Embarque"
+                sortCriteria={sortCriteria}
+                onSort={handleSort}
+              />
+            </th>
             <th className="px-3 py-2 font-medium">Frete</th>
             <th className="px-3 py-2 text-right font-medium">Peso</th>
             <th className="px-3 py-2 text-right font-medium">Volume</th>
@@ -79,7 +143,7 @@ export function EquipTable({
           </tr>
         </thead>
         <tbody>
-          {rows.map((r) => {
+          {sortData(rows).map((r) => {
             const late = isLate(r, today);
             const today_ = isToday(r, today);
             const mat = isTipoMaterial(r.tipo);
