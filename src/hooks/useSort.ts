@@ -39,8 +39,8 @@ export function useSort<T>(columnTypes: Record<string, SortColumnType> = {}) {
       return [...rows].sort((a, b) => {
         for (const c of ordered) {
           const cmp = compareValues(
-            (a as Record<string, unknown>)[c.key],
-            (b as Record<string, unknown>)[c.key],
+            getNestedValue(a, c.key),
+            getNestedValue(b, c.key),
             columnTypes[c.key],
           );
           if (cmp !== 0) return c.direction === "asc" ? cmp : -cmp;
@@ -52,6 +52,16 @@ export function useSort<T>(columnTypes: Record<string, SortColumnType> = {}) {
   );
 
   return { sortCriteria, handleSort, sortData };
+}
+
+/** Acessa campos aninhados via notação com ponto (ex: "project.name"). */
+function getNestedValue(row: unknown, key: string): unknown {
+  return key
+    .split(".")
+    .reduce<unknown>(
+      (acc, segment) => (acc as Record<string, unknown> | null | undefined)?.[segment],
+      row,
+    );
 }
 
 const isNumeric = (val: unknown): boolean =>

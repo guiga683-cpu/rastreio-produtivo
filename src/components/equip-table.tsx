@@ -66,7 +66,12 @@ export function EquipTable({
           <tr className="text-left">
             {showProject && (
               <th className="px-3 py-2 font-medium" style={{ minWidth: "130px" }}>
-                Projeto
+                <SortableHeader
+                  column="project.name"
+                  label="Projeto"
+                  sortCriteria={sortCriteria}
+                  onSort={handleSort}
+                />
               </th>
             )}
             <th className="px-3 py-2 font-medium">
