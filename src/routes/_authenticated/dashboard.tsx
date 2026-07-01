@@ -5,7 +5,7 @@ import type { Equipment, Project } from "@/lib/embarques";
 import { isLate, isNext30, isTipoMaterial } from "@/lib/embarques";
 import { EquipTable } from "@/components/equip-table";
 import { AlertTriangle, CalendarClock, FolderKanban, Boxes, Package } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, type ComponentProps } from "react";
 import { seedExampleIfEmpty } from "@/lib/seed";
 
 type Next30Row = Equipment & { project?: Project };
@@ -103,6 +103,7 @@ function Dashboard() {
           rows={[...matEnriched.filter((e) => isLate(e)), ...next30Mat]}
           isLoading={isLoading}
           empty="Nada nos próximos 30 dias."
+          hiddenColumns={["posicao", "data_producao", "status_producao"]}
         />
       </section>
 
@@ -114,6 +115,7 @@ function Dashboard() {
           rows={[...equipEnriched.filter((e) => isLate(e)), ...next30Equip]}
           isLoading={isLoading}
           empty="Nada nos próximos 30 dias."
+          hiddenColumns={["peso", "volume", "veiculo", "observacao"]}
         />
       </section>
     </div>
@@ -124,10 +126,12 @@ function Next30Section({
   rows,
   isLoading,
   empty,
+  hiddenColumns,
 }: {
   rows: Next30Row[];
   isLoading: boolean;
   empty?: string;
+  hiddenColumns?: ComponentProps<typeof EquipTable>["hiddenColumns"];
 }) {
   const dedup = Array.from(new Map(rows.map((r) => [r.id, r])).values());
   return (
@@ -136,6 +140,7 @@ function Next30Section({
         rows={dedup}
         empty={isLoading ? "Carregando…" : (empty ?? "Sem itens.")}
         stickyHeader
+        hiddenColumns={hiddenColumns}
       />
     </div>
   );
