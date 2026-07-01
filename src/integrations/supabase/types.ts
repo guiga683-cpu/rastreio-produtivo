@@ -33,6 +33,7 @@ export type Database = {
           tipo: string
           user_id: string
           valor_unitario: number
+          veiculo: string | null
           volume: number | null
         }
         Insert: {
@@ -53,6 +54,7 @@ export type Database = {
           tipo?: string
           user_id: string
           valor_unitario?: number
+          veiculo?: string | null
           volume?: number | null
         }
         Update: {
@@ -73,6 +75,7 @@ export type Database = {
           tipo?: string
           user_id?: string
           valor_unitario?: number
+          veiculo?: string | null
           volume?: number | null
         }
         Relationships: [
