@@ -18,11 +18,21 @@ interface Row extends Equipment {
   project?: Project;
 }
 
+type HideableColumn =
+  | "posicao"
+  | "data_producao"
+  | "status_producao"
+  | "peso"
+  | "volume"
+  | "veiculo"
+  | "observacao";
+
 interface Props {
   rows: Row[];
   showProject?: boolean;
   empty?: string;
   stickyHeader?: boolean;
+  hiddenColumns?: HideableColumn[];
 }
 
 export function EquipTable({
@@ -30,6 +40,7 @@ export function EquipTable({
   showProject = true,
   empty = "Nenhum equipamento.",
   stickyHeader = false,
+  hiddenColumns,
 }: Props) {
   const today = todayISO();
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -40,6 +51,8 @@ export function EquipTable({
     data_producao: "date",
     data_embarque: "date",
   });
+
+  const hide = new Set<HideableColumn>(hiddenColumns ?? []);
 
   function copyObs(id: string, text: string) {
     navigator.clipboard.writeText(text);
@@ -59,8 +72,15 @@ export function EquipTable({
     ? ({ position: "sticky", top: 0, zIndex: 10, backgroundColor: "var(--card)" } as const)
     : undefined;
 
+  // When stickyHeader is true, omit overflow-x-auto from the wrapper so the outer
+  // scroll container (Dashboard's overflow-auto div) is the sole scroll ancestor —
+  // that's the only way position:sticky on thead works correctly.
+  const wrapperClass = stickyHeader
+    ? "rounded-md border bg-card"
+    : "overflow-x-auto rounded-md border bg-card";
+
   return (
-    <div className="overflow-x-auto rounded-md border bg-card">
+    <div className={wrapperClass}>
       <table className="w-full text-xs">
         <thead className="bg-muted/60 text-muted-foreground" style={theadStyle}>
           <tr className="text-left">
@@ -85,14 +105,16 @@ export function EquipTable({
             <th className="px-3 py-2 font-medium">
               <SortableHeader column="tipo" label="Tipo" sortCriteria={sortCriteria} onSort={handleSort} />
             </th>
-            <th className="px-3 py-2 font-medium">
-              <SortableHeader
-                column="posicao"
-                label="Posição"
-                sortCriteria={sortCriteria}
-                onSort={handleSort}
-              />
-            </th>
+            {!hide.has("posicao") && (
+              <th className="px-3 py-2 font-medium">
+                <SortableHeader
+                  column="posicao"
+                  label="Posição"
+                  sortCriteria={sortCriteria}
+                  onSort={handleSort}
+                />
+              </th>
+            )}
             <th className="px-3 py-2 text-right font-medium whitespace-nowrap min-w-[110px]">
               <SortableHeader
                 column="valor_unitario"
@@ -109,22 +131,26 @@ export function EquipTable({
                 onSort={handleSort}
               />
             </th>
-            <th className="px-3 py-2 font-medium">
-              <SortableHeader
-                column="data_producao"
-                label="Data Prod."
-                sortCriteria={sortCriteria}
-                onSort={handleSort}
-              />
-            </th>
-            <th className="px-3 py-2 font-medium">
-              <SortableHeader
-                column="status_producao"
-                label="Status Prod."
-                sortCriteria={sortCriteria}
-                onSort={handleSort}
-              />
-            </th>
+            {!hide.has("data_producao") && (
+              <th className="px-3 py-2 font-medium">
+                <SortableHeader
+                  column="data_producao"
+                  label="Data Prod."
+                  sortCriteria={sortCriteria}
+                  onSort={handleSort}
+                />
+              </th>
+            )}
+            {!hide.has("status_producao") && (
+              <th className="px-3 py-2 font-medium">
+                <SortableHeader
+                  column="status_producao"
+                  label="Status Prod."
+                  sortCriteria={sortCriteria}
+                  onSort={handleSort}
+                />
+              </th>
+            )}
             <th className="px-3 py-2 font-medium">Data Faturamento</th>
             <th className="px-3 py-2 font-medium">
               <SortableHeader
@@ -143,9 +169,18 @@ export function EquipTable({
               />
             </th>
             <th className="px-3 py-2 font-medium">Frete</th>
-            <th className="px-3 py-2 text-right font-medium">Peso</th>
-            <th className="px-3 py-2 text-right font-medium">Volume</th>
-            <th className="px-3 py-2 font-medium">Obs</th>
+            {!hide.has("peso") && (
+              <th className="px-3 py-2 text-right font-medium">Peso</th>
+            )}
+            {!hide.has("volume") && (
+              <th className="px-3 py-2 text-right font-medium">Volume</th>
+            )}
+            {!hide.has("veiculo") && (
+              <th className="px-3 py-2 font-medium">Veículo</th>
+            )}
+            {!hide.has("observacao") && (
+              <th className="px-3 py-2 font-medium">Obs</th>
+            )}
           </tr>
         </thead>
         <tbody>
@@ -171,25 +206,31 @@ export function EquipTable({
                 <td className="px-3 py-2">
                   <TipoBadge value={r.tipo} />
                 </td>
-                <td className={`px-3 py-2 ${mat ? "text-muted-foreground/40" : ""}`}>
-                  {mat ? (r.posicao ?? "") : r.posicao || "—"}
-                </td>
+                {!hide.has("posicao") && (
+                  <td className={`px-3 py-2 ${mat ? "text-muted-foreground/40" : ""}`}>
+                    {mat ? (r.posicao ?? "") : r.posicao || "—"}
+                  </td>
+                )}
                 <td className="px-3 py-2 text-right tabular-nums whitespace-nowrap min-w-[110px]">
                   {formatBRL(r.valor_unitario)}
                 </td>
                 <td className="px-3 py-2 text-right tabular-nums">{r.quantidade}</td>
-                <td
-                  className={`px-3 py-2 whitespace-nowrap ${mat ? "text-muted-foreground/40" : ""}`}
-                >
-                  {mat
-                    ? r.data_producao
-                      ? formatDate(r.data_producao)
-                      : ""
-                    : formatDate(r.data_producao)}
-                </td>
-                <td className={`px-3 py-2 ${mat ? "text-muted-foreground/40" : ""}`}>
-                  {mat ? (r.status_producao ?? "") : <ProdBadge value={r.status_producao} />}
-                </td>
+                {!hide.has("data_producao") && (
+                  <td
+                    className={`px-3 py-2 whitespace-nowrap ${mat ? "text-muted-foreground/40" : ""}`}
+                  >
+                    {mat
+                      ? r.data_producao
+                        ? formatDate(r.data_producao)
+                        : ""
+                      : formatDate(r.data_producao)}
+                  </td>
+                )}
+                {!hide.has("status_producao") && (
+                  <td className={`px-3 py-2 ${mat ? "text-muted-foreground/40" : ""}`}>
+                    {mat ? (r.status_producao ?? "") : <ProdBadge value={r.status_producao} />}
+                  </td>
+                )}
                 <td className="px-3 py-2 whitespace-nowrap">{formatDate(r.data_faturamento)}</td>
                 <td className="px-3 py-2 whitespace-nowrap">
                   <div className="flex items-center gap-1.5">
@@ -203,32 +244,44 @@ export function EquipTable({
                 <td className="px-3 py-2">
                   <EmbarqueBadge value={r.status_embarque} />
                 </td>
-                <td className="px-3 py-2">{trt ? (r.frete ?? "—") : "—"}</td>
-                <td className="px-3 py-2 text-right tabular-nums">{trt ? (r.peso ?? "—") : "—"}</td>
-                <td className="px-3 py-2 text-right tabular-nums">
-                  {trt ? (r.volume ?? "—") : "—"}
-                </td>
-                <td className="px-3 py-2">
-                  {trt && r.observacao ? (
-                    <div className="flex items-center gap-1">
-                      <span className="max-w-[200px] truncate">{r.observacao}</span>
-                      <button
-                        type="button"
-                        onClick={() => copyObs(r.id, r.observacao!)}
-                        className="rounded p-0.5 text-muted-foreground hover:text-foreground"
-                        title="Copiar observação"
-                      >
-                        {copiedId === r.id ? (
-                          <Check className="h-3 w-3 text-success" />
-                        ) : (
-                          <Copy className="h-3 w-3" />
-                        )}
-                      </button>
-                    </div>
-                  ) : (
-                    "—"
-                  )}
-                </td>
+                {/* Frete: agora exibido para todos os tipos */}
+                <td className="px-3 py-2">{r.frete ?? "—"}</td>
+                {!hide.has("peso") && (
+                  <td className="px-3 py-2 text-right tabular-nums">
+                    {mat ? (r.peso ?? "—") : "—"}
+                  </td>
+                )}
+                {!hide.has("volume") && (
+                  <td className="px-3 py-2 text-right tabular-nums">
+                    {mat ? (r.volume ?? "—") : "—"}
+                  </td>
+                )}
+                {!hide.has("veiculo") && (
+                  <td className="px-3 py-2">{trt ? (r.veiculo ?? "—") : "—"}</td>
+                )}
+                {!hide.has("observacao") && (
+                  <td className="px-3 py-2">
+                    {mat && r.observacao ? (
+                      <div className="flex items-center gap-1">
+                        <span className="max-w-[200px] truncate">{r.observacao}</span>
+                        <button
+                          type="button"
+                          onClick={() => copyObs(r.id, r.observacao!)}
+                          className="rounded p-0.5 text-muted-foreground hover:text-foreground"
+                          title="Copiar observação"
+                        >
+                          {copiedId === r.id ? (
+                            <Check className="h-3 w-3 text-success" />
+                          ) : (
+                            <Copy className="h-3 w-3" />
+                          )}
+                        </button>
+                      </div>
+                    ) : (
+                      "—"
+                    )}
+                  </td>
+                )}
               </tr>
             );
           })}
