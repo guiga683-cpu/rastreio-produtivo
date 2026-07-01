@@ -262,7 +262,11 @@ function FaturamentoPage() {
       Cliente: e.project?.client ?? "",
       Equipamento: e.equipamento,
       Tipo: e.tipo,
-      Posição: e.posicao ?? "",
+      Posição: (() => {
+        const raw = e.posicao ?? "";
+        const n = Number(raw);
+        return Number.isFinite(n) && raw.trim() !== "" ? n : raw;
+      })(),
       Qtd: e.quantidade,
       "Valor Unitário": Number(e.valor_unitario),
       Subtotal: subtotal(e),
