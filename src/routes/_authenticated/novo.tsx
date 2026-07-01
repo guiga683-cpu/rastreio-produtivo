@@ -48,6 +48,7 @@ function NovoProjeto() {
             peso: r.tipo === "Material TRT" ? r.peso : null,
             volume: r.tipo === "Material TRT" ? r.volume : null,
             observacao: r.tipo === "Material TRT" ? r.observacao : null,
+            veiculo: r.tipo === "Material TRT" ? r.veiculo : null,
           })),
         );
         if (eErr) throw eErr;
