@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ChevronDown, Pencil, Trash2, Save, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Equipment, Project } from "@/lib/embarques";
-import { isLate, isNext30 } from "@/lib/embarques";
+import { isLate, isNext30, isTipoMaterial } from "@/lib/embarques";
 import { EquipTable } from "@/components/equip-table";
 import { EquipEditor, emptyRow, type DraftEquip } from "@/components/equip-editor";
 
@@ -127,9 +127,9 @@ function ProjectCard({ project, onChanged }: { project: FullProject; onChanged: 
           tipo: r.tipo,
           data_faturamento: r.data_faturamento,
           frete: r.frete,
-          peso: r.tipo === "Material TRT" ? r.peso : null,
-          volume: r.tipo === "Material TRT" ? r.volume : null,
-          observacao: r.tipo === "Material TRT" ? r.observacao : null,
+          peso: isTipoMaterial(r.tipo) ? r.peso : null,
+          volume: isTipoMaterial(r.tipo) ? r.volume : null,
+          observacao: isTipoMaterial(r.tipo) ? r.observacao : null,
           veiculo: r.tipo === "Material TRT" ? r.veiculo : null,
         };
         if (r.id) {
@@ -256,7 +256,11 @@ function ProjectCard({ project, onChanged }: { project: FullProject; onChanged: 
 }
 
 function SortedEquipList({ rows }: { rows: ProjEquipRow[] }) {
-  return <EquipTable rows={rows} showProject={false} empty="Projeto sem equipamentos." />;
+  return (
+    <div className="max-h-[600px] overflow-auto">
+      <EquipTable rows={rows} showProject={false} empty="Projeto sem equipamentos." stickyHeader />
+    </div>
+  );
 }
 
 function toDraft(e: Equipment): DraftEquip {

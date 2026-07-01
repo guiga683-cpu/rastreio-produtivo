@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { isTipoMaterial } from "@/lib/embarques";
 import { emptyRow, EquipEditor, type DraftEquip } from "@/components/equip-editor";
 
 export const Route = createFileRoute("/_authenticated/novo")({
@@ -45,9 +46,9 @@ function NovoProjeto() {
             tipo: r.tipo,
             data_faturamento: r.data_faturamento,
             frete: r.frete,
-            peso: r.tipo === "Material TRT" ? r.peso : null,
-            volume: r.tipo === "Material TRT" ? r.volume : null,
-            observacao: r.tipo === "Material TRT" ? r.observacao : null,
+            peso: isTipoMaterial(r.tipo) ? r.peso : null,
+            volume: isTipoMaterial(r.tipo) ? r.volume : null,
+            observacao: isTipoMaterial(r.tipo) ? r.observacao : null,
             veiculo: r.tipo === "Material TRT" ? r.veiculo : null,
           })),
         );
