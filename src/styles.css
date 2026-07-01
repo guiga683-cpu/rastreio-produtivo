@@ -96,6 +96,12 @@
     border-collapse: separate;
     border-spacing: 0;
   }
+  tr {
+    --frozen-bg: var(--card);
+  }
+  tr:hover {
+    --frozen-bg: color-mix(in oklch, var(--muted) 40%, var(--card) 60%);
+  }
 }
 
 @utility pill {

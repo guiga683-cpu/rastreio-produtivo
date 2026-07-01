@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 import type { Equipment, Project } from "@/lib/embarques";
 import {
   formatBRL,
@@ -35,6 +35,10 @@ interface Props {
   hiddenColumns?: HideableColumn[];
 }
 
+const PROJ_W = 140;
+const EQUIP_W = 220;
+const SHADOW = "2px 0 4px -1px rgba(0,0,0,0.12)";
+
 export function EquipTable({
   rows,
   showProject = true,
@@ -54,6 +58,37 @@ export function EquipTable({
 
   const hide = new Set<HideableColumn>(hiddenColumns ?? []);
 
+  const equipLeft = showProject ? PROJ_W : 0;
+  const tipoLeft = equipLeft + EQUIP_W;
+
+  // Frozen column header: always sticky-left; additionally sticky-top when stickyHeader
+  function frozenTh(left: number, extra?: CSSProperties): CSSProperties {
+    return {
+      position: "sticky",
+      left,
+      zIndex: stickyHeader ? 20 : 5,
+      backgroundColor: "var(--card)",
+      ...(stickyHeader ? { top: 0 } : {}),
+      ...extra,
+    };
+  }
+
+  // Non-frozen column header: sticky-top only when stickyHeader
+  const normalTh: CSSProperties | undefined = stickyHeader
+    ? { position: "sticky", top: 0, zIndex: 10, backgroundColor: "var(--card)" }
+    : undefined;
+
+  // Frozen body cell: always sticky-left
+  function frozenTd(left: number, extra?: CSSProperties): CSSProperties {
+    return {
+      position: "sticky",
+      left,
+      zIndex: 1,
+      backgroundColor: "var(--frozen-bg)",
+      ...extra,
+    };
+  }
+
   function copyObs(id: string, text: string) {
     navigator.clipboard.writeText(text);
     setCopiedId(id);
@@ -68,13 +103,6 @@ export function EquipTable({
     );
   }
 
-  const theadStyle = stickyHeader
-    ? ({ position: "sticky", top: 0, zIndex: 10, backgroundColor: "var(--card)" } as const)
-    : undefined;
-
-  // When stickyHeader is true, omit overflow-x-auto from the wrapper so the outer
-  // scroll container (Dashboard's overflow-auto div) is the sole scroll ancestor —
-  // that's the only way position:sticky on thead works correctly.
   const wrapperClass = stickyHeader
     ? "rounded-md border bg-card"
     : "overflow-x-auto rounded-md border bg-card";
@@ -82,10 +110,13 @@ export function EquipTable({
   return (
     <div className={wrapperClass}>
       <table className="w-full text-xs">
-        <thead className="bg-muted/60 text-muted-foreground" style={theadStyle}>
+        <thead className="bg-muted/60 text-muted-foreground">
           <tr className="text-left">
             {showProject && (
-              <th className="px-3 py-2 font-medium" style={{ minWidth: "130px" }}>
+              <th
+                className="px-3 py-2 font-medium"
+                style={frozenTh(0, { minWidth: `${PROJ_W}px`, maxWidth: `${PROJ_W}px` })}
+              >
                 <SortableHeader
                   column="project.name"
                   label="Projeto"
@@ -94,7 +125,10 @@ export function EquipTable({
                 />
               </th>
             )}
-            <th className="px-3 py-2 font-medium">
+            <th
+              className="px-3 py-2 font-medium"
+              style={frozenTh(equipLeft, { minWidth: `${EQUIP_W}px`, maxWidth: `${EQUIP_W}px` })}
+            >
               <SortableHeader
                 column="equipamento"
                 label="Equipamento"
@@ -102,11 +136,16 @@ export function EquipTable({
                 onSort={handleSort}
               />
             </th>
-            <th className="px-3 py-2 font-medium">
-              <SortableHeader column="tipo" label="Tipo" sortCriteria={sortCriteria} onSort={handleSort} />
+            <th className="px-3 py-2 font-medium" style={frozenTh(tipoLeft, { boxShadow: SHADOW })}>
+              <SortableHeader
+                column="tipo"
+                label="Tipo"
+                sortCriteria={sortCriteria}
+                onSort={handleSort}
+              />
             </th>
             {!hide.has("posicao") && (
-              <th className="px-3 py-2 font-medium">
+              <th className="px-3 py-2 font-medium" style={normalTh}>
                 <SortableHeader
                   column="posicao"
                   label="Posição"
@@ -115,7 +154,10 @@ export function EquipTable({
                 />
               </th>
             )}
-            <th className="px-3 py-2 text-right font-medium whitespace-nowrap min-w-[110px]">
+            <th
+              className="px-3 py-2 text-right font-medium whitespace-nowrap min-w-[110px]"
+              style={normalTh}
+            >
               <SortableHeader
                 column="valor_unitario"
                 label="Valor"
@@ -123,7 +165,7 @@ export function EquipTable({
                 onSort={handleSort}
               />
             </th>
-            <th className="px-3 py-2 text-right font-medium">
+            <th className="px-3 py-2 text-right font-medium" style={normalTh}>
               <SortableHeader
                 column="quantidade"
                 label="Qtd"
@@ -132,7 +174,7 @@ export function EquipTable({
               />
             </th>
             {!hide.has("data_producao") && (
-              <th className="px-3 py-2 font-medium">
+              <th className="px-3 py-2 font-medium" style={normalTh}>
                 <SortableHeader
                   column="data_producao"
                   label="Data Prod."
@@ -142,7 +184,7 @@ export function EquipTable({
               </th>
             )}
             {!hide.has("status_producao") && (
-              <th className="px-3 py-2 font-medium">
+              <th className="px-3 py-2 font-medium" style={normalTh}>
                 <SortableHeader
                   column="status_producao"
                   label="Status Prod."
@@ -151,8 +193,10 @@ export function EquipTable({
                 />
               </th>
             )}
-            <th className="px-3 py-2 font-medium">Data Faturamento</th>
-            <th className="px-3 py-2 font-medium">
+            <th className="px-3 py-2 font-medium" style={normalTh}>
+              Data Faturamento
+            </th>
+            <th className="px-3 py-2 font-medium" style={normalTh}>
               <SortableHeader
                 column="data_embarque"
                 label="Data Embarque"
@@ -160,7 +204,7 @@ export function EquipTable({
                 onSort={handleSort}
               />
             </th>
-            <th className="px-3 py-2 font-medium">
+            <th className="px-3 py-2 font-medium" style={normalTh}>
               <SortableHeader
                 column="status_embarque"
                 label="Status Embarque"
@@ -168,18 +212,28 @@ export function EquipTable({
                 onSort={handleSort}
               />
             </th>
-            <th className="px-3 py-2 font-medium">Frete</th>
+            <th className="px-3 py-2 font-medium" style={normalTh}>
+              Frete
+            </th>
             {!hide.has("peso") && (
-              <th className="px-3 py-2 text-right font-medium">Peso</th>
+              <th className="px-3 py-2 text-right font-medium" style={normalTh}>
+                Peso
+              </th>
             )}
             {!hide.has("volume") && (
-              <th className="px-3 py-2 text-right font-medium">Volume</th>
+              <th className="px-3 py-2 text-right font-medium" style={normalTh}>
+                Volume
+              </th>
             )}
             {!hide.has("veiculo") && (
-              <th className="px-3 py-2 font-medium">Veículo</th>
+              <th className="px-3 py-2 font-medium" style={normalTh}>
+                Veículo
+              </th>
             )}
             {!hide.has("observacao") && (
-              <th className="px-3 py-2 font-medium">Obs</th>
+              <th className="px-3 py-2 font-medium" style={normalTh}>
+                Obs
+              </th>
             )}
           </tr>
         </thead>
@@ -190,20 +244,46 @@ export function EquipTable({
             const mat = isTipoMaterial(r.tipo);
             const trt = r.tipo === "Material TRT";
             const bg = late ? "bg-row-late/60" : today_ ? "bg-row-today/60" : "hover:bg-muted/40";
+            // Solid equivalent of the translucent row color, for frozen cell backgrounds
+            const frozenBg = late
+              ? "color-mix(in oklch, var(--row-late) 60%, var(--card) 40%)"
+              : today_
+                ? "color-mix(in oklch, var(--row-today) 60%, var(--card) 40%)"
+                : undefined;
             return (
-              <tr key={r.id} className={`border-t ${bg}`}>
+              <tr
+                key={r.id}
+                className={`border-t ${bg}`}
+                style={frozenBg ? ({ "--frozen-bg": frozenBg } as CSSProperties) : undefined}
+              >
                 {showProject && (
-                  <td className="px-3 py-2" style={{ minWidth: "130px" }}>
-                    <div className="font-medium">{r.project?.name}</div>
-                    <div className="text-[11px] text-muted-foreground">{r.project?.client}</div>
+                  <td
+                    className="px-3 py-2"
+                    style={frozenTd(0, {
+                      minWidth: `${PROJ_W}px`,
+                      maxWidth: `${PROJ_W}px`,
+                      overflow: "hidden",
+                    })}
+                  >
+                    <div className="font-medium truncate">{r.project?.name}</div>
+                    <div className="text-[11px] text-muted-foreground truncate">
+                      {r.project?.client}
+                    </div>
                   </td>
                 )}
-                <td className="px-3 py-2 max-w-[420px]">
+                <td
+                  className="px-3 py-2"
+                  style={frozenTd(equipLeft, {
+                    minWidth: `${EQUIP_W}px`,
+                    maxWidth: `${EQUIP_W}px`,
+                    overflow: "hidden",
+                  })}
+                >
                   <div className="line-clamp-2" title={r.equipamento}>
                     {r.equipamento}
                   </div>
                 </td>
-                <td className="px-3 py-2">
+                <td className="px-3 py-2" style={frozenTd(tipoLeft, { boxShadow: SHADOW })}>
                   <TipoBadge value={r.tipo} />
                 </td>
                 {!hide.has("posicao") && (
@@ -244,7 +324,6 @@ export function EquipTable({
                 <td className="px-3 py-2">
                   <EmbarqueBadge value={r.status_embarque} />
                 </td>
-                {/* Frete: agora exibido para todos os tipos */}
                 <td className="px-3 py-2">{r.frete ?? "—"}</td>
                 {!hide.has("peso") && (
                   <td className="px-3 py-2 text-right tabular-nums">
