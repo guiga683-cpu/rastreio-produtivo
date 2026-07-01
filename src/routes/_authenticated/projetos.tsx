@@ -126,7 +126,7 @@ function ProjectCard({ project, onChanged }: { project: FullProject; onChanged: 
           status_embarque: r.status_embarque,
           tipo: r.tipo,
           data_faturamento: r.data_faturamento,
-          frete: r.tipo === "Material TRT" ? r.frete : null,
+          frete: r.frete,
           peso: r.tipo === "Material TRT" ? r.peso : null,
           volume: r.tipo === "Material TRT" ? r.volume : null,
           observacao: r.tipo === "Material TRT" ? r.observacao : null,
