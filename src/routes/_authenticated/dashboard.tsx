@@ -103,6 +103,7 @@ function Dashboard() {
           rows={[...matEnriched.filter((e) => isLate(e)), ...next30Mat]}
           isLoading={isLoading}
           empty="Nada nos próximos 30 dias."
+          hiddenColumns={["posicao", "data_producao", "status_producao"]}
         />
       </section>
 
@@ -114,8 +115,10 @@ function Dashboard() {
           rows={[...equipEnriched.filter((e) => isLate(e)), ...next30Equip]}
           isLoading={isLoading}
           empty="Nada nos próximos 30 dias."
+          hiddenColumns={["peso", "volume", "veiculo", "observacao"]}
         />
       </section>
+
     </div>
   );
 }
@@ -124,10 +127,12 @@ function Next30Section({
   rows,
   isLoading,
   empty,
+  hiddenColumns,
 }: {
   rows: Next30Row[];
   isLoading: boolean;
   empty?: string;
+  hiddenColumns?: React.ComponentProps<typeof EquipTable>["hiddenColumns"];
 }) {
   const dedup = Array.from(new Map(rows.map((r) => [r.id, r])).values());
   return (
@@ -136,10 +141,12 @@ function Next30Section({
         rows={dedup}
         empty={isLoading ? "Carregando…" : (empty ?? "Sem itens.")}
         stickyHeader
+        hiddenColumns={hiddenColumns}
       />
     </div>
   );
 }
+
 
 function MetricCard({
   icon,
