@@ -209,11 +209,11 @@ export function EquipEditor({ rows, onChange }: Props) {
                     type="number"
                     step="0.01"
                     value={r.peso ?? ""}
-                    disabled={r.tipo === "Equipamento"}
+                    disabled={r.tipo !== "Material TRT"}
                     onChange={(e) =>
                       update(i, { peso: e.target.value ? Number(e.target.value) : null })
                     }
-                    className={`w-20 rounded border px-2 py-1 text-right text-xs ${r.tipo === "Equipamento" ? "bg-muted opacity-60 cursor-not-allowed" : "bg-background"}`}
+                    className={`w-20 rounded border px-2 py-1 text-right text-xs ${r.tipo !== "Material TRT" ? "bg-muted opacity-60 cursor-not-allowed" : "bg-background"}`}
                   />
                 </td>
                 <td className="px-2 py-1.5">
@@ -221,11 +221,11 @@ export function EquipEditor({ rows, onChange }: Props) {
                     type="number"
                     step="0.01"
                     value={r.volume ?? ""}
-                    disabled={r.tipo === "Equipamento"}
+                    disabled={r.tipo !== "Material TRT"}
                     onChange={(e) =>
                       update(i, { volume: e.target.value ? Number(e.target.value) : null })
                     }
-                    className={`w-20 rounded border px-2 py-1 text-right text-xs ${r.tipo === "Equipamento" ? "bg-muted opacity-60 cursor-not-allowed" : "bg-background"}`}
+                    className={`w-20 rounded border px-2 py-1 text-right text-xs ${r.tipo !== "Material TRT" ? "bg-muted opacity-60 cursor-not-allowed" : "bg-background"}`}
                   />
                 </td>
                 <td className="px-2 py-1.5">
