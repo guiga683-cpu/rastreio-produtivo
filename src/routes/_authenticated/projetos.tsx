@@ -130,6 +130,7 @@ function ProjectCard({ project, onChanged }: { project: FullProject; onChanged: 
           peso: r.tipo === "Material TRT" ? r.peso : null,
           volume: r.tipo === "Material TRT" ? r.volume : null,
           observacao: r.tipo === "Material TRT" ? r.observacao : null,
+          veiculo: r.tipo === "Material TRT" ? r.veiculo : null,
         };
         if (r.id) {
           const { error } = await supabase.from("equipments").update(payload).eq("id", r.id);
@@ -275,5 +276,6 @@ function toDraft(e: Equipment): DraftEquip {
     peso: e.peso ?? null,
     volume: e.volume ?? null,
     observacao: e.observacao ?? null,
+    veiculo: e.veiculo ?? null,
   };
 }

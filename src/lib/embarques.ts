@@ -25,6 +25,7 @@ export interface Equipment {
   peso: number | null;
   volume: number | null;
   observacao: string | null;
+  veiculo: string | null;
 }
 
 export function isTipoMaterial(tipo: TipoItem): boolean {

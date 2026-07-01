@@ -25,6 +25,7 @@ export function emptyRow(): DraftEquip {
     peso: null,
     volume: null,
     observacao: null,
+    veiculo: null,
   };
 }
 
@@ -51,6 +52,7 @@ export function EquipEditor({ rows, onChange }: Props) {
       patch.peso = null;
       patch.volume = null;
       patch.observacao = null;
+      patch.veiculo = null;
     }
     update(i, patch);
   }
