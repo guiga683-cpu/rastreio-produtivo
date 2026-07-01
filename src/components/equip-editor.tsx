@@ -48,10 +48,11 @@ export function EquipEditor({ rows, onChange }: Props) {
       patch.status_producao = "NOK";
     }
     if (!isTipoMaterial(newTipo)) {
-      patch.frete = null;
       patch.peso = null;
       patch.volume = null;
       patch.observacao = null;
+    }
+    if (newTipo !== "Material TRT") {
       patch.veiculo = null;
     }
     update(i, patch);
@@ -83,6 +84,7 @@ export function EquipEditor({ rows, onChange }: Props) {
               <th className="px-2 py-2 font-medium">Frete</th>
               <th className="px-2 py-2 font-medium">Peso</th>
               <th className="px-2 py-2 font-medium">Volume</th>
+              <th className="px-2 py-2 font-medium">Veículo</th>
               <th className="px-2 py-2 font-medium">Obs</th>
               <th className="px-2 py-2"></th>
             </tr>
@@ -189,11 +191,10 @@ export function EquipEditor({ rows, onChange }: Props) {
                 <td className="px-2 py-1.5">
                   <select
                     value={r.frete ?? ""}
-                    disabled={r.tipo === "Equipamento"}
                     onChange={(e) =>
                       update(i, { frete: (e.target.value || null) as DraftEquip["frete"] })
                     }
-                    className={`rounded border px-2 py-1 text-xs ${r.tipo === "Equipamento" ? "bg-muted opacity-60 cursor-not-allowed" : "bg-background"}`}
+                    className="rounded border bg-background px-2 py-1 text-xs"
                   >
                     <option value="">—</option>
                     <option value="CIF">CIF</option>
@@ -225,6 +226,14 @@ export function EquipEditor({ rows, onChange }: Props) {
                   />
                 </td>
                 <td className="px-2 py-1.5">
+                  <input
+                    value={r.veiculo ?? ""}
+                    disabled={r.tipo !== "Material TRT"}
+                    onChange={(e) => update(i, { veiculo: e.target.value || null })}
+                    className={`w-28 rounded border px-2 py-1 text-xs ${r.tipo !== "Material TRT" ? "bg-muted opacity-60 cursor-not-allowed" : "bg-background"}`}
+                  />
+                </td>
+                <td className="px-2 py-1.5">
                   <textarea
                     rows={2}
                     value={r.observacao ?? ""}
@@ -247,7 +256,7 @@ export function EquipEditor({ rows, onChange }: Props) {
             ))}
             {rows.length === 0 && (
               <tr>
-                <td colSpan={15} className="px-3 py-6 text-center text-sm text-muted-foreground">
+                <td colSpan={16} className="px-3 py-6 text-center text-sm text-muted-foreground">
                   Sem equipamentos. Adicione uma linha.
                 </td>
               </tr>
