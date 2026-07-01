@@ -1,6 +1,23 @@
+import type { CSSProperties } from "react";
 import type { Equipment, StatusEmbarque, StatusProducao, TipoItem } from "@/lib/embarques";
 import { isTipoMaterial } from "@/lib/embarques";
 import { Trash2, Plus } from "lucide-react";
+
+const EDITOR_EQUIP_W = 280;
+const EDITOR_TIPO_LEFT = EDITOR_EQUIP_W;
+const SHADOW = "2px 0 4px -1px rgba(0,0,0,0.12)";
+const FROZEN_TH_BASE: CSSProperties = {
+  position: "sticky",
+  top: 0,
+  zIndex: 20,
+  backgroundColor: "var(--card)",
+};
+const NORMAL_TH: CSSProperties = {
+  position: "sticky",
+  top: 0,
+  zIndex: 10,
+  backgroundColor: "var(--card)",
+};
 
 export type DraftEquip = Omit<Equipment, "id" | "project_id"> & { id?: string };
 
@@ -69,33 +86,80 @@ export function EquipEditor({ rows, onChange }: Props) {
     <div className="space-y-2">
       <div className="overflow-auto rounded-md border bg-card max-h-[600px]">
         <table className="w-full text-xs">
-          <thead
-            className="text-muted-foreground"
-            style={{ position: "sticky", top: 0, zIndex: 10, backgroundColor: "var(--card)" }}
-          >
+          <thead className="text-muted-foreground">
             <tr className="text-left border-b">
-              <th className="px-2 py-2 font-medium min-w-[280px]">Equipamento</th>
-              <th className="px-2 py-2 font-medium">Tipo</th>
-              <th className="px-2 py-2 font-medium">Posição</th>
-              <th className="px-2 py-2 font-medium">Valor</th>
-              <th className="px-2 py-2 font-medium">Qtd</th>
-              <th className="px-2 py-2 font-medium">Data Prod.</th>
-              <th className="px-2 py-2 font-medium">Status Prod.</th>
-              <th className="px-2 py-2 font-medium">Data Faturamento</th>
-              <th className="px-2 py-2 font-medium">Data Embarque</th>
-              <th className="px-2 py-2 font-medium">Status Embarque</th>
-              <th className="px-2 py-2 font-medium">Frete</th>
-              <th className="px-2 py-2 font-medium">Peso</th>
-              <th className="px-2 py-2 font-medium">Volume</th>
-              <th className="px-2 py-2 font-medium">Veículo</th>
-              <th className="px-2 py-2 font-medium">Obs</th>
-              <th className="px-2 py-2"></th>
+              <th
+                className="px-2 py-2 font-medium"
+                style={{ ...FROZEN_TH_BASE, left: 0, minWidth: `${EDITOR_EQUIP_W}px` }}
+              >
+                Equipamento
+              </th>
+              <th
+                className="px-2 py-2 font-medium"
+                style={{
+                  ...FROZEN_TH_BASE,
+                  left: EDITOR_TIPO_LEFT,
+                  boxShadow: SHADOW,
+                }}
+              >
+                Tipo
+              </th>
+              <th className="px-2 py-2 font-medium" style={NORMAL_TH}>
+                Posição
+              </th>
+              <th className="px-2 py-2 font-medium" style={NORMAL_TH}>
+                Valor
+              </th>
+              <th className="px-2 py-2 font-medium" style={NORMAL_TH}>
+                Qtd
+              </th>
+              <th className="px-2 py-2 font-medium" style={NORMAL_TH}>
+                Data Prod.
+              </th>
+              <th className="px-2 py-2 font-medium" style={NORMAL_TH}>
+                Status Prod.
+              </th>
+              <th className="px-2 py-2 font-medium" style={NORMAL_TH}>
+                Data Faturamento
+              </th>
+              <th className="px-2 py-2 font-medium" style={NORMAL_TH}>
+                Data Embarque
+              </th>
+              <th className="px-2 py-2 font-medium" style={NORMAL_TH}>
+                Status Embarque
+              </th>
+              <th className="px-2 py-2 font-medium" style={NORMAL_TH}>
+                Frete
+              </th>
+              <th className="px-2 py-2 font-medium" style={NORMAL_TH}>
+                Peso
+              </th>
+              <th className="px-2 py-2 font-medium" style={NORMAL_TH}>
+                Volume
+              </th>
+              <th className="px-2 py-2 font-medium" style={NORMAL_TH}>
+                Veículo
+              </th>
+              <th className="px-2 py-2 font-medium" style={NORMAL_TH}>
+                Obs
+              </th>
+              <th className="px-2 py-2" style={NORMAL_TH}></th>
             </tr>
           </thead>
           <tbody>
             {rows.map((r, i) => (
               <tr key={i} className="border-t align-top">
-                <td className="px-2 py-1.5">
+                <td
+                  className="px-2 py-1.5"
+                  style={{
+                    position: "sticky",
+                    left: 0,
+                    zIndex: 1,
+                    backgroundColor: "var(--card)",
+                    minWidth: `${EDITOR_EQUIP_W}px`,
+                    maxWidth: `${EDITOR_EQUIP_W}px`,
+                  }}
+                >
                   <textarea
                     rows={2}
                     value={r.equipamento}
@@ -103,7 +167,16 @@ export function EquipEditor({ rows, onChange }: Props) {
                     className="w-full resize-y rounded border bg-background px-2 py-1 text-xs"
                   />
                 </td>
-                <td className="px-2 py-1.5">
+                <td
+                  className="px-2 py-1.5"
+                  style={{
+                    position: "sticky",
+                    left: EDITOR_TIPO_LEFT,
+                    zIndex: 1,
+                    backgroundColor: "var(--card)",
+                    boxShadow: SHADOW,
+                  }}
+                >
                   <select
                     value={r.tipo}
                     onChange={(e) => updateTipo(i, e.target.value as TipoItem)}
