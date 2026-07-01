@@ -18,11 +18,30 @@ interface Row extends Equipment {
   project?: Project;
 }
 
+type ColumnKey =
+  | "project"
+  | "equipamento"
+  | "tipo"
+  | "posicao"
+  | "valor_unitario"
+  | "quantidade"
+  | "data_producao"
+  | "status_producao"
+  | "data_faturamento"
+  | "data_embarque"
+  | "status_embarque"
+  | "frete"
+  | "peso"
+  | "volume"
+  | "veiculo"
+  | "observacao";
+
 interface Props {
   rows: Row[];
   showProject?: boolean;
   empty?: string;
   stickyHeader?: boolean;
+  hiddenColumns?: ColumnKey[];
 }
 
 export function EquipTable({
@@ -30,7 +49,10 @@ export function EquipTable({
   showProject = true,
   empty = "Nenhum equipamento.",
   stickyHeader = false,
+  hiddenColumns = [],
 }: Props) {
+  const hidden = new Set<ColumnKey>(hiddenColumns);
+  const show = (c: ColumnKey) => !hidden.has(c);
   const today = todayISO();
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const { sortCriteria, handleSort, sortData } = useSort<Row>({
