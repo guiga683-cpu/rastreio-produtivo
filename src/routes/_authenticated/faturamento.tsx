@@ -528,6 +528,7 @@ function FaturamentoPage() {
                 <th className="px-3 py-2 font-medium">Projeto</th>
                 <th className="px-3 py-2 font-medium">Equipamento</th>
                 <th className="px-3 py-2 font-medium">Tipo</th>
+                <th className="px-3 py-2 text-right font-medium">POS</th>
                 <th className="px-3 py-2 text-right font-medium">Qtd</th>
                 <th className="px-3 py-2 text-right font-medium whitespace-nowrap min-w-[110px]">
                   Valor Un
@@ -544,7 +545,7 @@ function FaturamentoPage() {
             <tbody>
               {itensConsiderados.length === 0 && (
                 <tr>
-                  <td colSpan={10} className="px-3 py-6 text-center text-sm text-muted-foreground">
+                  <td colSpan={11} className="px-3 py-6 text-center text-sm text-muted-foreground">
                     Nenhum item para os filtros selecionados.
                   </td>
                 </tr>
@@ -563,6 +564,7 @@ function FaturamentoPage() {
                     <td className="px-3 py-2">
                       <TipoBadge value={e.tipo} />
                     </td>
+                    <td className="px-3 py-2 text-right tabular-nums">{e.posicao || "—"}</td>
                     <td className="px-3 py-2 text-right tabular-nums">{e.quantidade}</td>
                     <td className="px-3 py-2 text-right tabular-nums whitespace-nowrap min-w-[110px]">
                       {formatBRL(e.valor_unitario)}
@@ -589,7 +591,7 @@ function FaturamentoPage() {
               })}
               {itensConsiderados.length > 0 && (
                 <tr className="border-t bg-muted/40 font-semibold">
-                  <td className="px-3 py-2" colSpan={5}>
+                  <td className="px-3 py-2" colSpan={6}>
                     Total
                   </td>
                   <td className="px-3 py-2 text-right tabular-nums">{formatBRL(total)}</td>
