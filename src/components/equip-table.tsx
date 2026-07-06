@@ -32,6 +32,8 @@ interface Props {
   showProject?: boolean;
   empty?: string;
   stickyHeader?: boolean;
+  /** Applied only when stickyHeader=true; the component owns its scroll container. */
+  maxHeight?: string;
   hiddenColumns?: HideableColumn[];
 }
 
@@ -44,6 +46,7 @@ export function EquipTable({
   showProject = true,
   empty = "Nenhum equipamento.",
   stickyHeader = false,
+  maxHeight,
   hiddenColumns,
 }: Props) {
   const today = todayISO();
@@ -103,12 +106,18 @@ export function EquipTable({
     );
   }
 
+  // When stickyHeader=true the component owns its scroll container (same pattern as
+  // equip-editor). This keeps the visual wrapper (border, bg, border-radius) and the
+  // overflow container on the same element, eliminating the background-mismatch band
+  // that appears when an external overflow-auto wraps an inner rounded-md element.
   const wrapperClass = stickyHeader
-    ? "rounded-md border bg-card"
+    ? "overflow-auto rounded-md border bg-card"
     : "overflow-x-auto rounded-md border bg-card";
 
+  const wrapperStyle = stickyHeader ? { maxHeight: maxHeight ?? "600px" } : undefined;
+
   return (
-    <div className={wrapperClass}>
+    <div className={wrapperClass} style={wrapperStyle}>
       <table className="w-full text-xs">
         <thead className="bg-muted/60 text-muted-foreground">
           <tr className="text-left">
