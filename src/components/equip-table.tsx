@@ -13,6 +13,12 @@ import { EmbarqueBadge, LateBadge, ProdBadge, TodayBadge, TipoBadge } from "@/co
 import { Copy, Check } from "lucide-react";
 import { useSort } from "@/hooks/useSort";
 import { SortableHeader } from "@/components/sortable-header";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface Row extends Equipment {
   project?: Project;
@@ -123,6 +129,7 @@ export function EquipTable({
     : undefined;
 
   return (
+    <TooltipProvider>
     <div className={wrapperClass} style={wrapperStyle}>
       <table className="w-full text-xs">
         <thead className="bg-muted/60 text-muted-foreground">
@@ -357,7 +364,16 @@ export function EquipTable({
                   <td className="px-3 py-2">
                     {mat && r.observacao ? (
                       <div className="flex items-center gap-1">
-                        <span className="max-w-[200px] truncate">{r.observacao}</span>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="max-w-[200px] truncate cursor-default">
+                              {r.observacao}
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs break-all">
+                            {r.observacao}
+                          </TooltipContent>
+                        </Tooltip>
                         <button
                           type="button"
                           onClick={() => copyObs(r.id, r.observacao!)}
@@ -382,5 +398,6 @@ export function EquipTable({
         </tbody>
       </table>
     </div>
+    </TooltipProvider>
   );
 }
