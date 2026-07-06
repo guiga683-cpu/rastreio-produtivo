@@ -111,10 +111,16 @@ export function EquipTable({
   // overflow container on the same element, eliminating the background-mismatch band
   // that appears when an external overflow-auto wraps an inner rounded-md element.
   const wrapperClass = stickyHeader
-    ? "overflow-auto rounded-md border bg-card"
+    ? "overflow-auto rounded-md border bg-card [&::-webkit-scrollbar-track]:bg-card [&::-webkit-scrollbar-corner]:bg-card"
     : "overflow-x-auto rounded-md border bg-card";
 
-  const wrapperStyle = stickyHeader ? { maxHeight: maxHeight ?? "600px" } : undefined;
+  const wrapperStyle: CSSProperties | undefined = stickyHeader
+    ? {
+        maxHeight: maxHeight ?? "600px",
+        scrollbarColor:
+          "color-mix(in oklch, var(--muted-foreground) 25%, transparent) var(--card)",
+      }
+    : undefined;
 
   return (
     <div className={wrapperClass} style={wrapperStyle}>
