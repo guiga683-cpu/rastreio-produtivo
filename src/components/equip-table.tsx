@@ -13,6 +13,7 @@ import { EmbarqueBadge, LateBadge, ProdBadge, TodayBadge, TipoBadge } from "@/co
 import { Copy, Check } from "lucide-react";
 import { useSort } from "@/hooks/useSort";
 import { SortableHeader } from "@/components/sortable-header";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface Row extends Equipment {
   project?: Project;
@@ -111,10 +112,16 @@ export function EquipTable({
   // overflow container on the same element, eliminating the background-mismatch band
   // that appears when an external overflow-auto wraps an inner rounded-md element.
   const wrapperClass = stickyHeader
-    ? "overflow-auto rounded-md border bg-card"
+    ? "overflow-auto rounded-md border bg-card [&::-webkit-scrollbar-track]:bg-card [&::-webkit-scrollbar-corner]:bg-card"
     : "overflow-x-auto rounded-md border bg-card";
 
-  const wrapperStyle = stickyHeader ? { maxHeight: maxHeight ?? "600px" } : undefined;
+  const wrapperStyle: CSSProperties | undefined = stickyHeader
+    ? {
+        maxHeight: maxHeight ?? "600px",
+        scrollbarColor:
+          "color-mix(in oklch, var(--muted-foreground) 25%, transparent) var(--card)",
+      }
+    : undefined;
 
   return (
     <div className={wrapperClass} style={wrapperStyle}>
@@ -351,7 +358,16 @@ export function EquipTable({
                   <td className="px-3 py-2">
                     {mat && r.observacao ? (
                       <div className="flex items-center gap-1">
-                        <span className="max-w-[200px] truncate">{r.observacao}</span>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="max-w-[200px] truncate cursor-default">
+                              {r.observacao}
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs break-all">
+                            {r.observacao}
+                          </TooltipContent>
+                        </Tooltip>
                         <button
                           type="button"
                           onClick={() => copyObs(r.id, r.observacao!)}
