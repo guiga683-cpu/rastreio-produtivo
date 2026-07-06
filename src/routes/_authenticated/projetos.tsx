@@ -257,9 +257,13 @@ function ProjectCard({ project, onChanged }: { project: FullProject; onChanged: 
 
 function SortedEquipList({ rows }: { rows: ProjEquipRow[] }) {
   return (
-    <div className="max-h-[600px] overflow-auto">
-      <EquipTable rows={rows} showProject={false} empty="Projeto sem equipamentos." stickyHeader />
-    </div>
+    <EquipTable
+      rows={rows}
+      showProject={false}
+      empty="Projeto sem equipamentos."
+      stickyHeader
+      maxHeight="600px"
+    />
   );
 }
 

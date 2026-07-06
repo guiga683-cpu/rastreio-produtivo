@@ -135,14 +135,13 @@ function Next30Section({
 }) {
   const dedup = Array.from(new Map(rows.map((r) => [r.id, r])).values());
   return (
-    <div className="max-h-[520px] overflow-auto">
-      <EquipTable
-        rows={dedup}
-        empty={isLoading ? "Carregando…" : (empty ?? "Sem itens.")}
-        stickyHeader
-        hiddenColumns={hiddenColumns}
-      />
-    </div>
+    <EquipTable
+      rows={dedup}
+      empty={isLoading ? "Carregando…" : (empty ?? "Sem itens.")}
+      stickyHeader
+      maxHeight="520px"
+      hiddenColumns={hiddenColumns}
+    />
   );
 }
 
