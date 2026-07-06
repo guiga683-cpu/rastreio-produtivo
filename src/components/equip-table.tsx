@@ -13,12 +13,7 @@ import { EmbarqueBadge, LateBadge, ProdBadge, TodayBadge, TipoBadge } from "@/co
 import { Copy, Check } from "lucide-react";
 import { useSort } from "@/hooks/useSort";
 import { SortableHeader } from "@/components/sortable-header";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface Row extends Equipment {
   project?: Project;
@@ -129,7 +124,6 @@ export function EquipTable({
     : undefined;
 
   return (
-    <TooltipProvider>
     <div className={wrapperClass} style={wrapperStyle}>
       <table className="w-full text-xs">
         <thead className="bg-muted/60 text-muted-foreground">
@@ -398,6 +392,5 @@ export function EquipTable({
         </tbody>
       </table>
     </div>
-    </TooltipProvider>
   );
 }
