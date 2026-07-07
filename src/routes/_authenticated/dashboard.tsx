@@ -1,11 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import type { Equipment, Project } from "@/lib/embarques";
-import { isLate, isNext30, isTipoMaterial } from "@/lib/embarques";
+import type { Carga, Equipment, Project } from "@/lib/embarques";
+import { isLate, isNext30, isTipoMaterial, sumCargas } from "@/lib/embarques";
 import { EquipTable } from "@/components/equip-table";
 import { AlertTriangle, CalendarClock, FolderKanban, Boxes, Package } from "lucide-react";
-import { useEffect, type ComponentProps } from "react";
+import { useEffect, useMemo, type ComponentProps } from "react";
 import { seedExampleIfEmpty } from "@/lib/seed";
 
 type Next30Row = Equipment & { project?: Project };
@@ -16,6 +16,7 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 });
 
 function Dashboard() {
+  const qc = useQueryClient();
   const { data, refetch, isLoading } = useQuery({
     queryKey: ["all-data"],
     queryFn: async () => {
@@ -25,9 +26,22 @@ function Dashboard() {
       ]);
       if (pRes.error) throw pRes.error;
       if (eRes.error) throw eRes.error;
+      const equipments = (eRes.data ?? []) as Equipment[];
+      const trtIds = equipments.filter((e) => e.tipo === "Material TRT").map((e) => e.id);
+      let cargas: Carga[] = [];
+      if (trtIds.length > 0) {
+        const cRes = await supabase
+          .from("cargas")
+          .select("*")
+          .in("equipment_id", trtIds)
+          .order("created_at");
+        if (cRes.error) throw cRes.error;
+        cargas = (cRes.data ?? []) as Carga[];
+      }
       return {
         projects: (pRes.data ?? []) as Project[],
-        equipments: (eRes.data ?? []) as Equipment[],
+        equipments,
+        cargas,
       };
     },
   });
@@ -40,8 +54,67 @@ function Dashboard() {
 
   const projects = data?.projects ?? [];
   const equipments = data?.equipments ?? [];
+  const cargas = data?.cargas ?? [];
   const pById = new Map(projects.map((p) => [p.id, p]));
   const enriched = equipments.map((e) => ({ ...e, project: pById.get(e.project_id) }));
+
+  const cargasByEquipment = useMemo(() => {
+    const map: Record<string, Carga[]> = {};
+    for (const c of cargas) {
+      (map[c.equipment_id] ??= []).push(c);
+    }
+    return map;
+  }, [cargas]);
+
+  async function syncValorFromCargas(equipmentId: string, cargasForEquip: Carga[]) {
+    const { error } = await supabase
+      .from("equipments")
+      .update({ valor_unitario: sumCargas(cargasForEquip) })
+      .eq("id", equipmentId);
+    if (error) throw error;
+  }
+
+  async function handleCargaAdd(equipmentId: string) {
+    const existing = cargasByEquipment[equipmentId] ?? [];
+    const { data: inserted, error } = await supabase
+      .from("cargas")
+      .insert({ equipment_id: equipmentId, descricao: `Carga ${existing.length + 1}`, valor: 0 })
+      .select()
+      .single();
+    if (error) {
+      alert(error.message);
+      return;
+    }
+    await syncValorFromCargas(equipmentId, [...existing, inserted as Carga]);
+    qc.invalidateQueries({ queryKey: ["all-data"] });
+  }
+
+  async function handleCargaUpdate(cargaId: string, patch: Partial<Carga>) {
+    const { error } = await supabase.from("cargas").update(patch).eq("id", cargaId);
+    if (error) {
+      alert(error.message);
+      return;
+    }
+    const carga = cargas.find((c) => c.id === cargaId);
+    if (carga) {
+      const updated = (cargasByEquipment[carga.equipment_id] ?? []).map((c) =>
+        c.id === cargaId ? { ...c, ...patch } : c,
+      );
+      await syncValorFromCargas(carga.equipment_id, updated);
+    }
+    qc.invalidateQueries({ queryKey: ["all-data"] });
+  }
+
+  async function handleCargaRemove(cargaId: string, equipmentId: string) {
+    const { error } = await supabase.from("cargas").delete().eq("id", cargaId);
+    if (error) {
+      alert(error.message);
+      return;
+    }
+    const remaining = (cargasByEquipment[equipmentId] ?? []).filter((c) => c.id !== cargaId);
+    await syncValorFromCargas(equipmentId, remaining);
+    qc.invalidateQueries({ queryKey: ["all-data"] });
+  }
 
   const equipEnriched = enriched.filter((e) => e.tipo === "Equipamento");
   const matEnriched = enriched.filter((e) => isTipoMaterial(e.tipo));
@@ -104,6 +177,11 @@ function Dashboard() {
           isLoading={isLoading}
           empty="Nada nos próximos 30 dias."
           hiddenColumns={["posicao", "data_producao", "status_producao"]}
+          editableCargas
+          cargasByEquipment={cargasByEquipment}
+          onCargaAdd={handleCargaAdd}
+          onCargaUpdate={handleCargaUpdate}
+          onCargaRemove={handleCargaRemove}
         />
       </section>
 
@@ -127,11 +205,21 @@ function Next30Section({
   isLoading,
   empty,
   hiddenColumns,
+  editableCargas,
+  cargasByEquipment,
+  onCargaAdd,
+  onCargaUpdate,
+  onCargaRemove,
 }: {
   rows: Next30Row[];
   isLoading: boolean;
   empty?: string;
   hiddenColumns?: ComponentProps<typeof EquipTable>["hiddenColumns"];
+  editableCargas?: ComponentProps<typeof EquipTable>["editableCargas"];
+  cargasByEquipment?: ComponentProps<typeof EquipTable>["cargasByEquipment"];
+  onCargaAdd?: ComponentProps<typeof EquipTable>["onCargaAdd"];
+  onCargaUpdate?: ComponentProps<typeof EquipTable>["onCargaUpdate"];
+  onCargaRemove?: ComponentProps<typeof EquipTable>["onCargaRemove"];
 }) {
   const dedup = Array.from(new Map(rows.map((r) => [r.id, r])).values());
   return (
@@ -141,6 +229,11 @@ function Next30Section({
       stickyHeader
       maxHeight="520px"
       hiddenColumns={hiddenColumns}
+      editableCargas={editableCargas}
+      cargasByEquipment={cargasByEquipment}
+      onCargaAdd={onCargaAdd}
+      onCargaUpdate={onCargaUpdate}
+      onCargaRemove={onCargaRemove}
     />
   );
 }
