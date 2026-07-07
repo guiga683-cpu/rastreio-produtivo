@@ -1,4 +1,4 @@
-import { useState, type CSSProperties } from "react";
+import { Fragment, useState, type CSSProperties } from "react";
 import type { Carga, Equipment, Project } from "@/lib/embarques";
 import {
   formatBRL,
