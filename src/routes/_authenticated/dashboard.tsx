@@ -1,11 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import type { Equipment, Project } from "@/lib/embarques";
+import type { Carga, Equipment, Project } from "@/lib/embarques";
 import { isLate, isNext30, isTipoMaterial } from "@/lib/embarques";
 import { EquipTable } from "@/components/equip-table";
 import { AlertTriangle, CalendarClock, FolderKanban, Boxes, Package } from "lucide-react";
-import { useEffect, type ComponentProps } from "react";
+import { useEffect, useMemo, type ComponentProps } from "react";
 import { seedExampleIfEmpty } from "@/lib/seed";
 
 type Next30Row = Equipment & { project?: Project };
@@ -16,18 +16,22 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 });
 
 function Dashboard() {
+  const qc = useQueryClient();
   const { data, refetch, isLoading } = useQuery({
     queryKey: ["all-data"],
     queryFn: async () => {
-      const [pRes, eRes] = await Promise.all([
+      const [pRes, eRes, cRes] = await Promise.all([
         supabase.from("projects").select("id,name,client").order("created_at"),
         supabase.from("equipments").select("*").order("created_at"),
+        supabase.from("cargas").select("*").order("created_at"),
       ]);
       if (pRes.error) throw pRes.error;
       if (eRes.error) throw eRes.error;
+      if (cRes.error) throw cRes.error;
       return {
         projects: (pRes.data ?? []) as Project[],
         equipments: (eRes.data ?? []) as Equipment[],
+        cargas: (cRes.data ?? []) as Carga[],
       };
     },
   });
