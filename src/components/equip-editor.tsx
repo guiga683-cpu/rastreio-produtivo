@@ -282,11 +282,11 @@ export function EquipEditor({ rows, onChange }: Props) {
                     type="number"
                     step="0.01"
                     value={r.peso ?? ""}
-                    disabled={r.tipo !== "Material TRT"}
+                    disabled={r.tipo !== "Material"}
                     onChange={(e) =>
                       update(i, { peso: e.target.value ? Number(e.target.value) : null })
                     }
-                    className={`w-20 rounded border px-2 py-1 text-right text-xs ${r.tipo !== "Material TRT" ? "bg-muted opacity-60 cursor-not-allowed" : "bg-background"}`}
+                    className={`w-20 rounded border px-2 py-1 text-right text-xs ${r.tipo !== "Material" ? "bg-muted opacity-60 cursor-not-allowed" : "bg-background"}`}
                   />
                 </td>
                 <td className="px-2 py-1.5">
@@ -294,19 +294,19 @@ export function EquipEditor({ rows, onChange }: Props) {
                     type="number"
                     step="0.01"
                     value={r.volume ?? ""}
-                    disabled={r.tipo !== "Material TRT"}
+                    disabled={r.tipo !== "Material"}
                     onChange={(e) =>
                       update(i, { volume: e.target.value ? Number(e.target.value) : null })
                     }
-                    className={`w-20 rounded border px-2 py-1 text-right text-xs ${r.tipo !== "Material TRT" ? "bg-muted opacity-60 cursor-not-allowed" : "bg-background"}`}
+                    className={`w-20 rounded border px-2 py-1 text-right text-xs ${r.tipo !== "Material" ? "bg-muted opacity-60 cursor-not-allowed" : "bg-background"}`}
                   />
                 </td>
                 <td className="px-2 py-1.5">
                   <input
                     value={r.veiculo ?? ""}
-                    disabled={r.tipo !== "Material TRT"}
+                    disabled={r.tipo !== "Material"}
                     onChange={(e) => update(i, { veiculo: e.target.value || null })}
-                    className={`w-28 rounded border px-2 py-1 text-xs ${r.tipo !== "Material TRT" ? "bg-muted opacity-60 cursor-not-allowed" : "bg-background"}`}
+                    className={`w-28 rounded border px-2 py-1 text-xs ${r.tipo !== "Material" ? "bg-muted opacity-60 cursor-not-allowed" : "bg-background"}`}
                   />
                 </td>
                 <td className="px-2 py-1.5">
