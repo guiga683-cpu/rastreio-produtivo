@@ -46,10 +46,10 @@ function NovoProjeto() {
             tipo: r.tipo,
             data_faturamento: r.data_faturamento,
             frete: r.frete,
-            peso: isTipoMaterial(r.tipo) ? r.peso : null,
-            volume: isTipoMaterial(r.tipo) ? r.volume : null,
+            peso: r.tipo === "Material" ? r.peso : null,
+            volume: r.tipo === "Material" ? r.volume : null,
             observacao: isTipoMaterial(r.tipo) ? r.observacao : null,
-            veiculo: r.tipo === "Material TRT" ? r.veiculo : null,
+            veiculo: r.tipo === "Material" ? r.veiculo : null,
           })),
         );
         if (eErr) throw eErr;
