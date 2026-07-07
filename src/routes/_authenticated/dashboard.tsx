@@ -147,6 +147,11 @@ function Dashboard() {
           isLoading={isLoading}
           empty="Nada nos próximos 30 dias."
           hiddenColumns={["posicao", "data_producao", "status_producao"]}
+          editableCargas
+          cargasByEquipment={cargasByEquipment}
+          onAddCarga={handleAddCarga}
+          onUpdateCarga={handleUpdateCarga}
+          onDeleteCarga={handleDeleteCarga}
         />
       </section>
 
@@ -162,6 +167,36 @@ function Dashboard() {
         />
       </section>
     </div>
+  );
+}
+
+type Next30Props = {
+  rows: Next30Row[];
+  isLoading: boolean;
+  empty?: string;
+  hiddenColumns?: ComponentProps<typeof EquipTable>["hiddenColumns"];
+  editableCargas?: boolean;
+  cargasByEquipment?: ComponentProps<typeof EquipTable>["cargasByEquipment"];
+  onAddCarga?: ComponentProps<typeof EquipTable>["onAddCarga"];
+  onUpdateCarga?: ComponentProps<typeof EquipTable>["onUpdateCarga"];
+  onDeleteCarga?: ComponentProps<typeof EquipTable>["onDeleteCarga"];
+};
+
+function Next30Section(props: Next30Props) {
+  const dedup = Array.from(new Map(props.rows.map((r) => [r.id, r])).values());
+  return (
+    <EquipTable
+      rows={dedup}
+      empty={props.isLoading ? "Carregando…" : (props.empty ?? "Sem itens.")}
+      stickyHeader
+      maxHeight="520px"
+      hiddenColumns={props.hiddenColumns}
+      editableCargas={props.editableCargas}
+      cargasByEquipment={props.cargasByEquipment}
+      onAddCarga={props.onAddCarga}
+      onUpdateCarga={props.onUpdateCarga}
+      onDeleteCarga={props.onDeleteCarga}
+    />
   );
 }
 
