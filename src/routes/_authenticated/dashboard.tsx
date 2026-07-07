@@ -200,29 +200,6 @@ function Next30Section(props: Next30Props) {
   );
 }
 
-function Next30Section({
-  rows,
-  isLoading,
-  empty,
-  hiddenColumns,
-}: {
-  rows: Next30Row[];
-  isLoading: boolean;
-  empty?: string;
-  hiddenColumns?: ComponentProps<typeof EquipTable>["hiddenColumns"];
-}) {
-  const dedup = Array.from(new Map(rows.map((r) => [r.id, r])).values());
-  return (
-    <EquipTable
-      rows={dedup}
-      empty={isLoading ? "Carregando…" : (empty ?? "Sem itens.")}
-      stickyHeader
-      maxHeight="520px"
-      hiddenColumns={hiddenColumns}
-    />
-  );
-}
-
 function MetricCard({
   icon,
   label,
