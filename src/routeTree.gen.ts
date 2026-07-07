@@ -13,6 +13,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthIndexRouteImport } from './routes/auth.index'
+import { Route as AuthRedefinirSenhaRouteImport } from './routes/auth.redefinir-senha'
 import { Route as AuthEsqueciSenhaRouteImport } from './routes/auth.esqueci-senha'
 import { Route as AuthenticatedProjetosRouteImport } from './routes/_authenticated/projetos'
 import { Route as AuthenticatedNovoRouteImport } from './routes/_authenticated/novo'
@@ -37,6 +38,11 @@ const IndexRoute = IndexRouteImport.update({
 const AuthIndexRoute = AuthIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthRedefinirSenhaRoute = AuthRedefinirSenhaRouteImport.update({
+  id: '/redefinir-senha',
+  path: '/redefinir-senha',
   getParentRoute: () => AuthRoute,
 } as any)
 const AuthEsqueciSenhaRoute = AuthEsqueciSenhaRouteImport.update({
@@ -80,6 +86,7 @@ export interface FileRoutesByFullPath {
   '/novo': typeof AuthenticatedNovoRoute
   '/projetos': typeof AuthenticatedProjetosRoute
   '/auth/esqueci-senha': typeof AuthEsqueciSenhaRoute
+  '/auth/redefinir-senha': typeof AuthRedefinirSenhaRoute
   '/auth/': typeof AuthIndexRoute
 }
 export interface FileRoutesByTo {
@@ -90,6 +97,7 @@ export interface FileRoutesByTo {
   '/novo': typeof AuthenticatedNovoRoute
   '/projetos': typeof AuthenticatedProjetosRoute
   '/auth/esqueci-senha': typeof AuthEsqueciSenhaRoute
+  '/auth/redefinir-senha': typeof AuthRedefinirSenhaRoute
   '/auth': typeof AuthIndexRoute
 }
 export interface FileRoutesById {
@@ -103,6 +111,7 @@ export interface FileRoutesById {
   '/_authenticated/novo': typeof AuthenticatedNovoRoute
   '/_authenticated/projetos': typeof AuthenticatedProjetosRoute
   '/auth/esqueci-senha': typeof AuthEsqueciSenhaRoute
+  '/auth/redefinir-senha': typeof AuthRedefinirSenhaRoute
   '/auth/': typeof AuthIndexRoute
 }
 export interface FileRouteTypes {
@@ -116,6 +125,7 @@ export interface FileRouteTypes {
     | '/novo'
     | '/projetos'
     | '/auth/esqueci-senha'
+    | '/auth/redefinir-senha'
     | '/auth/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -126,6 +136,7 @@ export interface FileRouteTypes {
     | '/novo'
     | '/projetos'
     | '/auth/esqueci-senha'
+    | '/auth/redefinir-senha'
     | '/auth'
   id:
     | '__root__'
@@ -138,6 +149,7 @@ export interface FileRouteTypes {
     | '/_authenticated/novo'
     | '/_authenticated/projetos'
     | '/auth/esqueci-senha'
+    | '/auth/redefinir-senha'
     | '/auth/'
   fileRoutesById: FileRoutesById
 }
@@ -175,6 +187,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/auth/'
       preLoaderRoute: typeof AuthIndexRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/auth/redefinir-senha': {
+      id: '/auth/redefinir-senha'
+      path: '/redefinir-senha'
+      fullPath: '/auth/redefinir-senha'
+      preLoaderRoute: typeof AuthRedefinirSenhaRouteImport
       parentRoute: typeof AuthRoute
     }
     '/auth/esqueci-senha': {
@@ -243,11 +262,13 @@ const AuthenticatedRouteRouteWithChildren =
 
 interface AuthRouteChildren {
   AuthEsqueciSenhaRoute: typeof AuthEsqueciSenhaRoute
+  AuthRedefinirSenhaRoute: typeof AuthRedefinirSenhaRoute
   AuthIndexRoute: typeof AuthIndexRoute
 }
 
 const AuthRouteChildren: AuthRouteChildren = {
   AuthEsqueciSenhaRoute: AuthEsqueciSenhaRoute,
+  AuthRedefinirSenhaRoute: AuthRedefinirSenhaRoute,
   AuthIndexRoute: AuthIndexRoute,
 }
 
