@@ -44,8 +44,47 @@ function Dashboard() {
 
   const projects = data?.projects ?? [];
   const equipments = data?.equipments ?? [];
+  const cargas = data?.cargas ?? [];
   const pById = new Map(projects.map((p) => [p.id, p]));
   const enriched = equipments.map((e) => ({ ...e, project: pById.get(e.project_id) }));
+
+  const cargasByEquipment = useMemo(() => {
+    const m = new Map<string, Carga[]>();
+    for (const c of cargas) {
+      const arr = m.get(c.equipment_id) ?? [];
+      arr.push(c);
+      m.set(c.equipment_id, arr);
+    }
+    return m;
+  }, [cargas]);
+
+  async function recomputeFrete(equipmentId: string) {
+    const { data: cs } = await supabase.from("cargas").select("valor").eq("equipment_id", equipmentId);
+    const sum = (cs ?? []).reduce((s, c) => s + Number(c.valor || 0), 0);
+    await supabase.from("equipments").update({ frete: String(sum.toFixed(2)) }).eq("id", equipmentId);
+  }
+
+  async function handleAddCarga(equipmentId: string) {
+    const list = cargasByEquipment.get(equipmentId) ?? [];
+    const descricao = `Carga ${list.length + 1}`;
+    const { error } = await supabase.from("cargas").insert({ equipment_id: equipmentId, descricao, valor: 0 });
+    if (error) { alert(error.message); return; }
+    await recomputeFrete(equipmentId);
+    qc.invalidateQueries({ queryKey: ["all-data"] });
+  }
+  async function handleUpdateCarga(id: string, patch: Partial<Carga>) {
+    const { data: row, error } = await supabase.from("cargas").update(patch).eq("id", id).select("equipment_id").single();
+    if (error) { alert(error.message); return; }
+    if (row?.equipment_id && patch.valor !== undefined) await recomputeFrete(row.equipment_id);
+    qc.invalidateQueries({ queryKey: ["all-data"] });
+  }
+  async function handleDeleteCarga(id: string) {
+    const target = cargas.find((c) => c.id === id);
+    const { error } = await supabase.from("cargas").delete().eq("id", id);
+    if (error) { alert(error.message); return; }
+    if (target) await recomputeFrete(target.equipment_id);
+    qc.invalidateQueries({ queryKey: ["all-data"] });
+  }
 
   const equipEnriched = enriched.filter((e) => e.tipo === "Equipamento");
   const matEnriched = enriched.filter((e) => isTipoMaterial(e.tipo));
