@@ -21,7 +21,8 @@ export interface Equipment {
   status_embarque: StatusEmbarque;
   tipo: TipoItem;
   data_faturamento: string | null;
-  frete: "CIF" | "FOB" | null;
+  /** "CIF" | "FOB" | valor numérico (string) quando calculado a partir de cargas de Material TRT */
+  frete: string | null;
   peso: number | null;
   volume: number | null;
   observacao: string | null;
