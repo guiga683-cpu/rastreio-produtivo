@@ -32,6 +32,22 @@ export function isTipoMaterial(tipo: TipoItem): boolean {
   return tipo === "Material" || tipo === "Material TRT";
 }
 
+/** Uma carga = uma entrega/caminhão de um item Material TRT desmembrado. */
+export interface Carga {
+  id: string;
+  equipment_id: string;
+  descricao: string;
+  valor: number;
+  peso: number | null;
+  volume: number | null;
+  veiculo: string | null;
+  created_at: string;
+}
+
+export function sumCargas(cargas: Carga[]): number {
+  return cargas.reduce((s, c) => s + Number(c.valor || 0), 0);
+}
+
 const _brl = new Intl.NumberFormat("pt-BR", {
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,

@@ -8,6 +8,47 @@ export type Database = {
   };
   public: {
     Tables: {
+      cargas: {
+        Row: {
+          created_at: string;
+          descricao: string;
+          equipment_id: string;
+          id: string;
+          peso: number | null;
+          valor: number;
+          veiculo: string | null;
+          volume: number | null;
+        };
+        Insert: {
+          created_at?: string;
+          descricao?: string;
+          equipment_id: string;
+          id?: string;
+          peso?: number | null;
+          valor?: number;
+          veiculo?: string | null;
+          volume?: number | null;
+        };
+        Update: {
+          created_at?: string;
+          descricao?: string;
+          equipment_id?: string;
+          id?: string;
+          peso?: number | null;
+          valor?: number;
+          veiculo?: string | null;
+          volume?: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "cargas_equipment_id_fkey";
+            columns: ["equipment_id"];
+            isOneToOne: false;
+            referencedRelation: "equipments";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       equipments: {
         Row: {
           created_at: string;
