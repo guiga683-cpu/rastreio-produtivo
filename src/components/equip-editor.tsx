@@ -65,11 +65,13 @@ export function EquipEditor({ rows, onChange }: Props) {
       patch.status_producao = "NOK";
     }
     if (!isTipoMaterial(newTipo)) {
-      patch.peso = null;
-      patch.volume = null;
       patch.observacao = null;
     }
-    if (newTipo !== "Material TRT") {
+    // Peso, volume e veículo só existem em "Material" (comum).
+    // Em Material TRT esses dados vão nas cargas, cadastradas no Dashboard.
+    if (newTipo !== "Material") {
+      patch.peso = null;
+      patch.volume = null;
       patch.veiculo = null;
     }
     update(i, patch);
