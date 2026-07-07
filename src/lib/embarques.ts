@@ -21,23 +21,11 @@ export interface Equipment {
   status_embarque: StatusEmbarque;
   tipo: TipoItem;
   data_faturamento: string | null;
-  /** "CIF" | "FOB" | valor numérico (string) quando calculado a partir de cargas de Material TRT */
-  frete: string | null;
+  frete: "CIF" | "FOB" | null;
   peso: number | null;
   volume: number | null;
   observacao: string | null;
   veiculo: string | null;
-}
-
-export interface Carga {
-  id: string;
-  equipment_id: string;
-  descricao: string;
-  valor: number;
-  peso: number | null;
-  volume: number | null;
-  veiculo: string | null;
-  created_at?: string;
 }
 
 export function isTipoMaterial(tipo: TipoItem): boolean {
