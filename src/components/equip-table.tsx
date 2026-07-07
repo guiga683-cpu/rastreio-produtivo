@@ -313,9 +313,8 @@ export function EquipTable({
             const showFreteAsSum = trt && editableCargas && rowCargas.length > 0;
 
             return (
-              <>
+              <Fragment key={r.id}>
                 <tr
-                  key={r.id}
                   className={`border-t ${bg}`}
                   style={frozenBg ? ({ "--frozen-bg": frozenBg } as CSSProperties) : undefined}
                 >
