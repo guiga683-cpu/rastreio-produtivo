@@ -474,7 +474,7 @@ export function EquipTable({
                     </td>
                   </tr>
                 )}
-              </>
+              </Fragment>
             );
           })}
         </tbody>
