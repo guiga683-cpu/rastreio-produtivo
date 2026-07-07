@@ -13,6 +13,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthIndexRouteImport } from './routes/auth.index'
+import { Route as AuthEsqueciSenhaRouteImport } from './routes/auth.esqueci-senha'
 import { Route as AuthenticatedProjetosRouteImport } from './routes/_authenticated/projetos'
 import { Route as AuthenticatedNovoRouteImport } from './routes/_authenticated/novo'
 import { Route as AuthenticatedFaturamentoRouteImport } from './routes/_authenticated/faturamento'
@@ -36,6 +37,11 @@ const IndexRoute = IndexRouteImport.update({
 const AuthIndexRoute = AuthIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthEsqueciSenhaRoute = AuthEsqueciSenhaRouteImport.update({
+  id: '/esqueci-senha',
+  path: '/esqueci-senha',
   getParentRoute: () => AuthRoute,
 } as any)
 const AuthenticatedProjetosRoute = AuthenticatedProjetosRouteImport.update({
@@ -73,6 +79,7 @@ export interface FileRoutesByFullPath {
   '/faturamento': typeof AuthenticatedFaturamentoRoute
   '/novo': typeof AuthenticatedNovoRoute
   '/projetos': typeof AuthenticatedProjetosRoute
+  '/auth/esqueci-senha': typeof AuthEsqueciSenhaRoute
   '/auth/': typeof AuthIndexRoute
 }
 export interface FileRoutesByTo {
@@ -82,6 +89,7 @@ export interface FileRoutesByTo {
   '/faturamento': typeof AuthenticatedFaturamentoRoute
   '/novo': typeof AuthenticatedNovoRoute
   '/projetos': typeof AuthenticatedProjetosRoute
+  '/auth/esqueci-senha': typeof AuthEsqueciSenhaRoute
   '/auth': typeof AuthIndexRoute
 }
 export interface FileRoutesById {
@@ -94,6 +102,7 @@ export interface FileRoutesById {
   '/_authenticated/faturamento': typeof AuthenticatedFaturamentoRoute
   '/_authenticated/novo': typeof AuthenticatedNovoRoute
   '/_authenticated/projetos': typeof AuthenticatedProjetosRoute
+  '/auth/esqueci-senha': typeof AuthEsqueciSenhaRoute
   '/auth/': typeof AuthIndexRoute
 }
 export interface FileRouteTypes {
@@ -106,6 +115,7 @@ export interface FileRouteTypes {
     | '/faturamento'
     | '/novo'
     | '/projetos'
+    | '/auth/esqueci-senha'
     | '/auth/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -115,6 +125,7 @@ export interface FileRouteTypes {
     | '/faturamento'
     | '/novo'
     | '/projetos'
+    | '/auth/esqueci-senha'
     | '/auth'
   id:
     | '__root__'
@@ -126,6 +137,7 @@ export interface FileRouteTypes {
     | '/_authenticated/faturamento'
     | '/_authenticated/novo'
     | '/_authenticated/projetos'
+    | '/auth/esqueci-senha'
     | '/auth/'
   fileRoutesById: FileRoutesById
 }
@@ -163,6 +175,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/auth/'
       preLoaderRoute: typeof AuthIndexRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/auth/esqueci-senha': {
+      id: '/auth/esqueci-senha'
+      path: '/esqueci-senha'
+      fullPath: '/auth/esqueci-senha'
+      preLoaderRoute: typeof AuthEsqueciSenhaRouteImport
       parentRoute: typeof AuthRoute
     }
     '/_authenticated/projetos': {
@@ -223,10 +242,12 @@ const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
 interface AuthRouteChildren {
+  AuthEsqueciSenhaRoute: typeof AuthEsqueciSenhaRoute
   AuthIndexRoute: typeof AuthIndexRoute
 }
 
 const AuthRouteChildren: AuthRouteChildren = {
+  AuthEsqueciSenhaRoute: AuthEsqueciSenhaRoute,
   AuthIndexRoute: AuthIndexRoute,
 }
 
