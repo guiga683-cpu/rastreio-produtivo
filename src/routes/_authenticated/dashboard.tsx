@@ -102,6 +102,19 @@ function Dashboard() {
     invalidate();
   }
 
+  async function handleUpdateStatusField(
+    equipmentId: string,
+    field: "romaneio" | "painel",
+    value: "OK" | "NOK",
+  ) {
+    const { error } = await supabase
+      .from("equipments")
+      .update({ [field]: value })
+      .eq("id", equipmentId);
+    if (error) return alert(error.message);
+    invalidate();
+  }
+
   const equipEnriched = enriched.filter((e) => e.tipo === "Equipamento");
   const matEnriched = enriched.filter((e) => isTipoMaterial(e.tipo));
 
@@ -175,6 +188,8 @@ function Dashboard() {
           onAddCarga={handleAddCarga}
           onUpdateCarga={handleUpdateCarga}
           onDeleteCarga={handleDeleteCarga}
+          editableStatusFields
+          onUpdateStatusField={handleUpdateStatusField}
         />
       </section>
 
@@ -191,6 +206,8 @@ function Dashboard() {
           onAddCarga={handleAddCarga}
           onUpdateCarga={handleUpdateCarga}
           onDeleteCarga={handleDeleteCarga}
+          editableStatusFields
+          onUpdateStatusField={handleUpdateStatusField}
         />
       </section>
     </div>
@@ -206,6 +223,8 @@ function Next30Section({
   onAddCarga,
   onUpdateCarga,
   onDeleteCarga,
+  editableStatusFields,
+  onUpdateStatusField,
 }: {
   rows: Next30Row[];
   isLoading: boolean;
@@ -215,6 +234,8 @@ function Next30Section({
   onAddCarga?: ComponentProps<typeof EquipTable>["onAddCarga"];
   onUpdateCarga?: ComponentProps<typeof EquipTable>["onUpdateCarga"];
   onDeleteCarga?: ComponentProps<typeof EquipTable>["onDeleteCarga"];
+  editableStatusFields?: ComponentProps<typeof EquipTable>["editableStatusFields"];
+  onUpdateStatusField?: ComponentProps<typeof EquipTable>["onUpdateStatusField"];
 }) {
   const dedup = Array.from(new Map(rows.map((r) => [r.id, r])).values());
   return (
@@ -229,6 +250,8 @@ function Next30Section({
       onAddCarga={onAddCarga}
       onUpdateCarga={onUpdateCarga}
       onDeleteCarga={onDeleteCarga}
+      editableStatusFields={editableStatusFields}
+      onUpdateStatusField={onUpdateStatusField}
     />
   );
 }
