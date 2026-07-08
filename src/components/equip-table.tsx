@@ -23,6 +23,7 @@ type HideableColumn =
   | "posicao"
   | "data_producao"
   | "status_producao"
+  | "status_embarque"
   | "peso"
   | "volume"
   | "veiculo"
@@ -96,7 +97,8 @@ export function EquipTable({
   colCount += 2; // valor, qtd
   if (!hide.has("data_producao")) colCount++;
   if (!hide.has("status_producao")) colCount++;
-  colCount += 3; // data faturamento, data embarque, status embarque
+  colCount += 2; // data faturamento, data embarque
+  if (!hide.has("status_embarque")) colCount++;
   colCount++; // frete
   if (!hide.has("peso")) colCount++;
   if (!hide.has("volume")) colCount++;
@@ -263,14 +265,16 @@ export function EquipTable({
                 onSort={handleSort}
               />
             </th>
-            <th className="px-3 py-2 font-medium" style={normalTh}>
-              <SortableHeader
-                column="status_embarque"
-                label="Status Embarque"
-                sortCriteria={sortCriteria}
-                onSort={handleSort}
-              />
-            </th>
+            {!hide.has("status_embarque") && (
+              <th className="px-3 py-2 font-medium" style={normalTh}>
+                <SortableHeader
+                  column="status_embarque"
+                  label="Status Embarque"
+                  sortCriteria={sortCriteria}
+                  onSort={handleSort}
+                />
+              </th>
+            )}
             <th className="px-3 py-2 font-medium" style={normalTh}>
               Frete
             </th>
@@ -408,9 +412,11 @@ export function EquipTable({
                       {today_ && <TodayBadge />}
                     </div>
                   </td>
-                  <td className="px-3 py-2">
-                    <EmbarqueBadge value={r.status_embarque} />
-                  </td>
+                  {!hide.has("status_embarque") && (
+                    <td className="px-3 py-2">
+                      <EmbarqueBadge value={r.status_embarque} />
+                    </td>
+                  )}
                   <td className="px-3 py-2">{r.frete ?? "—"}</td>
                   {!hide.has("peso") && <td className="px-3 py-2 text-right tabular-nums">—</td>}
                   {!hide.has("volume") && <td className="px-3 py-2 text-right tabular-nums">—</td>}
