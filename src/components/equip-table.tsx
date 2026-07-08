@@ -1,4 +1,4 @@
-import { Fragment, useState, type CSSProperties } from "react";
+import { Fragment, useEffect, useState, type CSSProperties } from "react";
 import type { Carga, Equipment, Project } from "@/lib/embarques";
 import {
   formatBRL,
@@ -487,56 +487,7 @@ function CargasEditor({
     <div className="space-y-2 p-3">
       <div className="space-y-1.5">
         {cargas.map((c) => (
-          <div key={c.id} className="flex flex-wrap items-center gap-1.5">
-            <input
-              value={c.descricao}
-              placeholder="Descrição"
-              onChange={(e) => onUpdate?.(c.id, { descricao: e.target.value })}
-              className="w-40 rounded border bg-background px-2 py-1 text-xs"
-            />
-            <input
-              type="number"
-              step="0.01"
-              value={c.valor}
-              placeholder="Valor"
-              onChange={(e) => onUpdate?.(c.id, { valor: Number(e.target.value) })}
-              className="w-28 rounded border bg-background px-2 py-1 text-right text-xs"
-            />
-            <input
-              type="number"
-              step="0.01"
-              value={c.peso ?? ""}
-              placeholder="Peso"
-              onChange={(e) =>
-                onUpdate?.(c.id, { peso: e.target.value ? Number(e.target.value) : null })
-              }
-              className="w-20 rounded border bg-background px-2 py-1 text-right text-xs"
-            />
-            <input
-              type="number"
-              step="0.01"
-              value={c.volume ?? ""}
-              placeholder="Volume"
-              onChange={(e) =>
-                onUpdate?.(c.id, { volume: e.target.value ? Number(e.target.value) : null })
-              }
-              className="w-20 rounded border bg-background px-2 py-1 text-right text-xs"
-            />
-            <input
-              value={c.veiculo ?? ""}
-              placeholder="Veículo"
-              onChange={(e) => onUpdate?.(c.id, { veiculo: e.target.value || null })}
-              className="w-28 rounded border bg-background px-2 py-1 text-xs"
-            />
-            <button
-              type="button"
-              onClick={() => onDelete?.(c.id)}
-              className="rounded p-1 text-muted-foreground hover:bg-danger/10 hover:text-danger"
-              title="Remover carga"
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-            </button>
-          </div>
+          <CargaRow key={c.id} carga={c} onUpdate={onUpdate} onDelete={onDelete} />
         ))}
         {cargas.length === 0 && (
           <div className="text-xs text-muted-foreground">Nenhuma carga cadastrada.</div>
@@ -548,6 +499,105 @@ function CargasEditor({
         className="inline-flex items-center gap-1 rounded-md border border-dashed px-2 py-1 text-xs text-muted-foreground hover:bg-accent hover:text-foreground"
       >
         <Plus className="h-3.5 w-3.5" /> Nova carga
+      </button>
+    </div>
+  );
+}
+
+function CargaRow({
+  carga,
+  onUpdate,
+  onDelete,
+}: {
+  carga: Carga;
+  onUpdate?: (id: string, patch: Partial<Carga>) => void;
+  onDelete?: (id: string) => void;
+}) {
+  const [descricao, setDescricao] = useState(carga.descricao ?? "");
+  const [valor, setValor] = useState(String(carga.valor ?? 0));
+  const [peso, setPeso] = useState(carga.peso == null ? "" : String(carga.peso));
+  const [volume, setVolume] = useState(carga.volume == null ? "" : String(carga.volume));
+  const [veiculo, setVeiculo] = useState(carga.veiculo ?? "");
+
+  // Re-sincroniza o estado local se a carga mudar por fora (ex: outro dispositivo)
+  useEffect(() => {
+    setDescricao(carga.descricao ?? "");
+    setValor(String(carga.valor ?? 0));
+    setPeso(carga.peso == null ? "" : String(carga.peso));
+    setVolume(carga.volume == null ? "" : String(carga.volume));
+    setVeiculo(carga.veiculo ?? "");
+  }, [carga.id, carga.descricao, carga.valor, carga.peso, carga.volume, carga.veiculo]);
+
+  function commitDescricao() {
+    if (descricao !== (carga.descricao ?? "")) onUpdate?.(carga.id, { descricao });
+  }
+  function commitValor() {
+    const n = Number(valor) || 0;
+    if (n !== Number(carga.valor ?? 0)) onUpdate?.(carga.id, { valor: n });
+  }
+  function commitPeso() {
+    const n = peso === "" ? null : Number(peso);
+    if (n !== (carga.peso ?? null)) onUpdate?.(carga.id, { peso: n });
+  }
+  function commitVolume() {
+    const n = volume === "" ? null : Number(volume);
+    if (n !== (carga.volume ?? null)) onUpdate?.(carga.id, { volume: n });
+  }
+  function commitVeiculo() {
+    const v = veiculo || null;
+    if (v !== (carga.veiculo ?? null)) onUpdate?.(carga.id, { veiculo: v });
+  }
+
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      <input
+        value={descricao}
+        placeholder="Descrição"
+        onChange={(e) => setDescricao(e.target.value)}
+        onBlur={commitDescricao}
+        className="w-40 rounded border bg-background px-2 py-1 text-xs"
+      />
+      <input
+        type="number"
+        step="0.01"
+        value={valor}
+        placeholder="Valor"
+        onChange={(e) => setValor(e.target.value)}
+        onBlur={commitValor}
+        className="w-28 rounded border bg-background px-2 py-1 text-right text-xs"
+      />
+      <input
+        type="number"
+        step="0.01"
+        value={peso}
+        placeholder="Peso"
+        onChange={(e) => setPeso(e.target.value)}
+        onBlur={commitPeso}
+        className="w-20 rounded border bg-background px-2 py-1 text-right text-xs"
+      />
+      <input
+        type="number"
+        step="0.01"
+        value={volume}
+        placeholder="Volume"
+        onChange={(e) => setVolume(e.target.value)}
+        onBlur={commitVolume}
+        className="w-20 rounded border bg-background px-2 py-1 text-right text-xs"
+      />
+      <input
+        value={veiculo}
+        placeholder="Veículo"
+        onChange={(e) => setVeiculo(e.target.value)}
+        onBlur={commitVeiculo}
+        className="w-28 rounded border bg-background px-2 py-1 text-xs"
+      />
+      <button
+        type="button"
+        onClick={() => onDelete?.(carga.id)}
+        className="rounded p-1 text-muted-foreground hover:bg-danger/10 hover:text-danger"
+        title="Remover carga"
+      >
+        <Trash2 className="h-3.5 w-3.5" />
       </button>
     </div>
   );
