@@ -9,7 +9,14 @@ import {
   isTipoMaterial,
   todayISO,
 } from "@/lib/embarques";
-import { EmbarqueBadge, LateBadge, ProdBadge, TodayBadge, TipoBadge } from "@/components/badges";
+import {
+  EmbarqueBadge,
+  LateBadge,
+  ProdBadge,
+  TodayBadge,
+  TipoBadge,
+  StatusToggleBadge,
+} from "@/components/badges";
 import { Copy, Check, ChevronRight, ChevronDown, Plus, Trash2 } from "lucide-react";
 import { useSort } from "@/hooks/useSort";
 import { SortableHeader } from "@/components/sortable-header";
@@ -43,6 +50,13 @@ interface Props {
   onAddCarga?: (equipmentId: string) => void;
   onUpdateCarga?: (id: string, patch: Partial<Carga>) => void;
   onDeleteCarga?: (id: string) => void;
+  /** Habilita edição inline de Romaneio/Painel — uso exclusivo do Dashboard. */
+  editableStatusFields?: boolean;
+  onUpdateStatusField?: (
+    equipmentId: string,
+    field: "romaneio" | "painel",
+    value: "OK" | "NOK",
+  ) => void;
 }
 
 const PROJ_W = 140;
@@ -62,6 +76,8 @@ export function EquipTable({
   onAddCarga,
   onUpdateCarga,
   onDeleteCarga,
+  editableStatusFields = false,
+  onUpdateStatusField,
 }: Props) {
   const today = todayISO();
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -100,6 +116,7 @@ export function EquipTable({
   colCount += 2; // data faturamento, data embarque
   if (!hide.has("status_embarque")) colCount++;
   colCount++; // frete
+  if (editableStatusFields) colCount += 2; // romaneio, painel
   if (!hide.has("peso")) colCount++;
   if (!hide.has("volume")) colCount++;
   if (!hide.has("veiculo")) colCount++;
@@ -278,6 +295,16 @@ export function EquipTable({
             <th className="px-3 py-2 font-medium" style={normalTh}>
               Frete
             </th>
+            {editableStatusFields && (
+              <>
+                <th className="px-3 py-2 font-medium" style={normalTh}>
+                  Romaneio
+                </th>
+                <th className="px-3 py-2 font-medium" style={normalTh}>
+                  Painel
+                </th>
+              </>
+            )}
             {!hide.has("peso") && (
               <th className="px-3 py-2 text-right font-medium" style={normalTh}>
                 Peso
@@ -418,6 +445,30 @@ export function EquipTable({
                     </td>
                   )}
                   <td className="px-3 py-2">{r.frete ?? "—"}</td>
+                  {editableStatusFields && (
+                    <>
+                      <td className="px-3 py-2">
+                        <StatusToggleBadge
+                          value={r.romaneio}
+                          onToggle={() =>
+                            onUpdateStatusField?.(
+                              r.id,
+                              "romaneio",
+                              r.romaneio === "OK" ? "NOK" : "OK",
+                            )
+                          }
+                        />
+                      </td>
+                      <td className="px-3 py-2">
+                        <StatusToggleBadge
+                          value={r.painel}
+                          onToggle={() =>
+                            onUpdateStatusField?.(r.id, "painel", r.painel === "OK" ? "NOK" : "OK")
+                          }
+                        />
+                      </td>
+                    </>
+                  )}
                   {!hide.has("peso") && <td className="px-3 py-2 text-right tabular-nums">—</td>}
                   {!hide.has("volume") && <td className="px-3 py-2 text-right tabular-nums">—</td>}
                   {!hide.has("veiculo") && <td className="px-3 py-2">—</td>}

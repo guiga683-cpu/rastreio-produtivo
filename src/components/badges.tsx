@@ -6,6 +6,21 @@ export function ProdBadge({ value }: { value: StatusProducao | null }) {
   return <span className={`pill ${cls}`}>{value}</span>;
 }
 
+export function StatusToggleBadge({
+  value,
+  onToggle,
+}: {
+  value: "OK" | "NOK";
+  onToggle: () => void;
+}) {
+  const cls = value === "OK" ? "bg-success/15 text-success" : "bg-danger/15 text-danger";
+  return (
+    <button type="button" onClick={onToggle} className={`pill ${cls} cursor-pointer`}>
+      {value}
+    </button>
+  );
+}
+
 export function EmbarqueBadge({ value }: { value: StatusEmbarque }) {
   const cls =
     value === "Expedido"
