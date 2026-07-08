@@ -1,6 +1,7 @@
 export type StatusProducao = "OK" | "NOK";
 export type StatusEmbarque = "Não expedido" | "Expedido" | "Cancelado";
 export type TipoItem = "Equipamento" | "Material" | "Material TRT";
+export type StatusChecklist = "OK" | "NOK";
 
 export interface Project {
   id: string;
@@ -26,6 +27,8 @@ export interface Equipment {
   volume: number | null;
   observacao: string | null;
   veiculo: string | null;
+  romaneio: StatusChecklist;
+  painel: StatusChecklist;
 }
 
 export function isTipoMaterial(tipo: TipoItem): boolean {
