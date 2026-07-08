@@ -263,6 +263,7 @@ function SortedEquipList({ rows }: { rows: ProjEquipRow[] }) {
       empty="Projeto sem equipamentos."
       stickyHeader
       maxHeight="600px"
+      hiddenColumns={["peso", "volume", "veiculo"]}
     />
   );
 }
