@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import type { Equipment, Project } from "@/lib/embarques";
+import type { Carga, Equipment, Project } from "@/lib/embarques";
 import { isLate, isNext30, isTipoMaterial } from "@/lib/embarques";
 import { EquipTable } from "@/components/equip-table";
 import { AlertTriangle, CalendarClock, FolderKanban, Boxes, Package } from "lucide-react";
@@ -16,18 +16,22 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 });
 
 function Dashboard() {
+  const qc = useQueryClient();
   const { data, refetch, isLoading } = useQuery({
     queryKey: ["all-data"],
     queryFn: async () => {
-      const [pRes, eRes] = await Promise.all([
+      const [pRes, eRes, cRes] = await Promise.all([
         supabase.from("projects").select("id,name,client").order("created_at"),
         supabase.from("equipments").select("*").order("created_at"),
+        supabase.from("cargas").select("*").order("created_at"),
       ]);
       if (pRes.error) throw pRes.error;
       if (eRes.error) throw eRes.error;
+      if (cRes.error) throw cRes.error;
       return {
         projects: (pRes.data ?? []) as Project[],
         equipments: (eRes.data ?? []) as Equipment[],
+        cargas: (cRes.data ?? []) as Carga[],
       };
     },
   });
@@ -40,8 +44,63 @@ function Dashboard() {
 
   const projects = data?.projects ?? [];
   const equipments = data?.equipments ?? [];
+  const cargas = data?.cargas ?? [];
   const pById = new Map(projects.map((p) => [p.id, p]));
   const enriched = equipments.map((e) => ({ ...e, project: pById.get(e.project_id) }));
+
+  const cargasByEquipment = new Map<string, Carga[]>();
+  for (const c of cargas) {
+    const list = cargasByEquipment.get(c.equipment_id) ?? [];
+    list.push(c);
+    cargasByEquipment.set(c.equipment_id, list);
+  }
+
+  function invalidate() {
+    qc.invalidateQueries({ queryKey: ["all-data"] });
+  }
+
+  async function syncValorUnitario(equipmentId: string, updatedCargas: Carga[]) {
+    const total = updatedCargas.reduce((s, c) => s + Number(c.valor || 0), 0);
+    const { error } = await supabase
+      .from("equipments")
+      .update({ valor_unitario: total })
+      .eq("id", equipmentId);
+    if (error) throw error;
+  }
+
+  async function handleAddCarga(equipmentId: string) {
+    const { data: inserted, error } = await supabase
+      .from("cargas")
+      .insert({ equipment_id: equipmentId, descricao: "Carga", valor: 0 })
+      .select()
+      .single();
+    if (error) return alert(error.message);
+    const updated = [...(cargasByEquipment.get(equipmentId) ?? []), inserted as Carga];
+    await syncValorUnitario(equipmentId, updated);
+    invalidate();
+  }
+
+  async function handleUpdateCarga(id: string, patch: Partial<Carga>) {
+    const carga = cargas.find((c) => c.id === id);
+    if (!carga) return;
+    const { error } = await supabase.from("cargas").update(patch).eq("id", id);
+    if (error) return alert(error.message);
+    const updated = (cargasByEquipment.get(carga.equipment_id) ?? []).map((c) =>
+      c.id === id ? { ...c, ...patch } : c,
+    );
+    await syncValorUnitario(carga.equipment_id, updated);
+    invalidate();
+  }
+
+  async function handleDeleteCarga(id: string) {
+    const carga = cargas.find((c) => c.id === id);
+    if (!carga) return;
+    const { error } = await supabase.from("cargas").delete().eq("id", id);
+    if (error) return alert(error.message);
+    const updated = (cargasByEquipment.get(carga.equipment_id) ?? []).filter((c) => c.id !== id);
+    await syncValorUnitario(carga.equipment_id, updated);
+    invalidate();
+  }
 
   const equipEnriched = enriched.filter((e) => e.tipo === "Equipamento");
   const matEnriched = enriched.filter((e) => isTipoMaterial(e.tipo));
@@ -104,6 +163,10 @@ function Dashboard() {
           isLoading={isLoading}
           empty="Nada nos próximos 30 dias."
           hiddenColumns={["posicao", "data_producao", "status_producao"]}
+          cargasByEquipment={cargasByEquipment}
+          onAddCarga={handleAddCarga}
+          onUpdateCarga={handleUpdateCarga}
+          onDeleteCarga={handleDeleteCarga}
         />
       </section>
 
@@ -116,6 +179,10 @@ function Dashboard() {
           isLoading={isLoading}
           empty="Nada nos próximos 30 dias."
           hiddenColumns={["peso", "volume", "veiculo", "observacao"]}
+          cargasByEquipment={cargasByEquipment}
+          onAddCarga={handleAddCarga}
+          onUpdateCarga={handleUpdateCarga}
+          onDeleteCarga={handleDeleteCarga}
         />
       </section>
     </div>
@@ -127,11 +194,19 @@ function Next30Section({
   isLoading,
   empty,
   hiddenColumns,
+  cargasByEquipment,
+  onAddCarga,
+  onUpdateCarga,
+  onDeleteCarga,
 }: {
   rows: Next30Row[];
   isLoading: boolean;
   empty?: string;
   hiddenColumns?: ComponentProps<typeof EquipTable>["hiddenColumns"];
+  cargasByEquipment?: ComponentProps<typeof EquipTable>["cargasByEquipment"];
+  onAddCarga?: ComponentProps<typeof EquipTable>["onAddCarga"];
+  onUpdateCarga?: ComponentProps<typeof EquipTable>["onUpdateCarga"];
+  onDeleteCarga?: ComponentProps<typeof EquipTable>["onDeleteCarga"];
 }) {
   const dedup = Array.from(new Map(rows.map((r) => [r.id, r])).values());
   return (
@@ -141,6 +216,11 @@ function Next30Section({
       stickyHeader
       maxHeight="520px"
       hiddenColumns={hiddenColumns}
+      editableCargas
+      cargasByEquipment={cargasByEquipment}
+      onAddCarga={onAddCarga}
+      onUpdateCarga={onUpdateCarga}
+      onDeleteCarga={onDeleteCarga}
     />
   );
 }
