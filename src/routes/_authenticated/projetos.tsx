@@ -127,10 +127,10 @@ function ProjectCard({ project, onChanged }: { project: FullProject; onChanged: 
           tipo: r.tipo,
           data_faturamento: r.data_faturamento,
           frete: r.frete,
-          peso: isTipoMaterial(r.tipo) ? r.peso : null,
-          volume: isTipoMaterial(r.tipo) ? r.volume : null,
+          peso: null,
+          volume: null,
           observacao: isTipoMaterial(r.tipo) ? r.observacao : null,
-          veiculo: r.tipo === "Material TRT" ? r.veiculo : null,
+          veiculo: null,
         };
         if (r.id) {
           const { error } = await supabase.from("equipments").update(payload).eq("id", r.id);
