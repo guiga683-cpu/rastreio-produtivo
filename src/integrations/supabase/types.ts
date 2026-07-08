@@ -59,10 +59,12 @@ export type Database = {
           frete: string | null;
           id: string;
           observacao: string | null;
+          painel: string;
           peso: number | null;
           posicao: string | null;
           project_id: string;
           quantidade: number;
+          romaneio: string;
           status_embarque: string;
           status_producao: string | null;
           tipo: string;
@@ -80,10 +82,12 @@ export type Database = {
           frete?: string | null;
           id?: string;
           observacao?: string | null;
+          painel?: string;
           peso?: number | null;
           posicao?: string | null;
           project_id: string;
           quantidade?: number;
+          romaneio?: string;
           status_embarque?: string;
           status_producao?: string | null;
           tipo?: string;
@@ -101,10 +105,12 @@ export type Database = {
           frete?: string | null;
           id?: string;
           observacao?: string | null;
+          painel?: string;
           peso?: number | null;
           posicao?: string | null;
           project_id?: string;
           quantidade?: number;
+          romaneio?: string;
           status_embarque?: string;
           status_producao?: string | null;
           tipo?: string;
