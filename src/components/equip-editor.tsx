@@ -65,12 +65,7 @@ export function EquipEditor({ rows, onChange }: Props) {
       patch.status_producao = "NOK";
     }
     if (!isTipoMaterial(newTipo)) {
-      patch.peso = null;
-      patch.volume = null;
       patch.observacao = null;
-    }
-    if (newTipo !== "Material TRT") {
-      patch.veiculo = null;
     }
     update(i, patch);
   }
@@ -130,15 +125,6 @@ export function EquipEditor({ rows, onChange }: Props) {
               </th>
               <th className="px-2 py-2 font-medium" style={NORMAL_TH}>
                 Frete
-              </th>
-              <th className="px-2 py-2 font-medium" style={NORMAL_TH}>
-                Peso
-              </th>
-              <th className="px-2 py-2 font-medium" style={NORMAL_TH}>
-                Volume
-              </th>
-              <th className="px-2 py-2 font-medium" style={NORMAL_TH}>
-                Veículo
               </th>
               <th className="px-2 py-2 font-medium" style={NORMAL_TH}>
                 Obs
@@ -278,38 +264,6 @@ export function EquipEditor({ rows, onChange }: Props) {
                   </select>
                 </td>
                 <td className="px-2 py-1.5">
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={r.peso ?? ""}
-                    disabled={r.tipo !== "Material TRT"}
-                    onChange={(e) =>
-                      update(i, { peso: e.target.value ? Number(e.target.value) : null })
-                    }
-                    className={`w-20 rounded border px-2 py-1 text-right text-xs ${r.tipo !== "Material TRT" ? "bg-muted opacity-60 cursor-not-allowed" : "bg-background"}`}
-                  />
-                </td>
-                <td className="px-2 py-1.5">
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={r.volume ?? ""}
-                    disabled={r.tipo !== "Material TRT"}
-                    onChange={(e) =>
-                      update(i, { volume: e.target.value ? Number(e.target.value) : null })
-                    }
-                    className={`w-20 rounded border px-2 py-1 text-right text-xs ${r.tipo !== "Material TRT" ? "bg-muted opacity-60 cursor-not-allowed" : "bg-background"}`}
-                  />
-                </td>
-                <td className="px-2 py-1.5">
-                  <input
-                    value={r.veiculo ?? ""}
-                    disabled={r.tipo !== "Material TRT"}
-                    onChange={(e) => update(i, { veiculo: e.target.value || null })}
-                    className={`w-28 rounded border px-2 py-1 text-xs ${r.tipo !== "Material TRT" ? "bg-muted opacity-60 cursor-not-allowed" : "bg-background"}`}
-                  />
-                </td>
-                <td className="px-2 py-1.5">
                   <textarea
                     rows={2}
                     value={r.observacao ?? ""}
@@ -332,7 +286,7 @@ export function EquipEditor({ rows, onChange }: Props) {
             ))}
             {rows.length === 0 && (
               <tr>
-                <td colSpan={16} className="px-3 py-6 text-center text-sm text-muted-foreground">
+                <td colSpan={13} className="px-3 py-6 text-center text-sm text-muted-foreground">
                   Sem equipamentos. Adicione uma linha.
                 </td>
               </tr>
