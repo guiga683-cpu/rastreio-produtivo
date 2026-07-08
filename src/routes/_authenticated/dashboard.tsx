@@ -115,6 +115,15 @@ function Dashboard() {
     invalidate();
   }
 
+  async function handleUpdateObs(equipmentId: string, value: string | null) {
+    const { error } = await supabase
+      .from("equipments")
+      .update({ observacao: value })
+      .eq("id", equipmentId);
+    if (error) return alert(error.message);
+    invalidate();
+  }
+
   const equipEnriched = enriched.filter((e) => e.tipo === "Equipamento");
   const matEnriched = enriched.filter((e) => isTipoMaterial(e.tipo));
 
@@ -190,6 +199,8 @@ function Dashboard() {
           onDeleteCarga={handleDeleteCarga}
           editableStatusFields
           onUpdateStatusField={handleUpdateStatusField}
+          editableObs
+          onUpdateObs={handleUpdateObs}
         />
       </section>
 
@@ -208,6 +219,8 @@ function Dashboard() {
           onDeleteCarga={handleDeleteCarga}
           editableStatusFields
           onUpdateStatusField={handleUpdateStatusField}
+          editableObs
+          onUpdateObs={handleUpdateObs}
         />
       </section>
     </div>
@@ -225,6 +238,8 @@ function Next30Section({
   onDeleteCarga,
   editableStatusFields,
   onUpdateStatusField,
+  editableObs,
+  onUpdateObs,
 }: {
   rows: Next30Row[];
   isLoading: boolean;
@@ -236,6 +251,8 @@ function Next30Section({
   onDeleteCarga?: ComponentProps<typeof EquipTable>["onDeleteCarga"];
   editableStatusFields?: ComponentProps<typeof EquipTable>["editableStatusFields"];
   onUpdateStatusField?: ComponentProps<typeof EquipTable>["onUpdateStatusField"];
+  editableObs?: ComponentProps<typeof EquipTable>["editableObs"];
+  onUpdateObs?: ComponentProps<typeof EquipTable>["onUpdateObs"];
 }) {
   const dedup = Array.from(new Map(rows.map((r) => [r.id, r])).values());
   return (
@@ -252,6 +269,8 @@ function Next30Section({
       onDeleteCarga={onDeleteCarga}
       editableStatusFields={editableStatusFields}
       onUpdateStatusField={onUpdateStatusField}
+      editableObs={editableObs}
+      onUpdateObs={onUpdateObs}
     />
   );
 }

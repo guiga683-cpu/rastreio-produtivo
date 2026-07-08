@@ -57,6 +57,9 @@ interface Props {
     field: "romaneio" | "painel",
     value: "OK" | "NOK",
   ) => void;
+  /** Habilita edição inline de Obs — uso exclusivo do Dashboard. */
+  editableObs?: boolean;
+  onUpdateObs?: (equipmentId: string, value: string | null) => void;
 }
 
 const PROJ_W = 140;
@@ -78,6 +81,8 @@ export function EquipTable({
   onDeleteCarga,
   editableStatusFields = false,
   onUpdateStatusField,
+  editableObs = false,
+  onUpdateObs,
 }: Props) {
   const today = todayISO();
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -474,7 +479,15 @@ export function EquipTable({
                   {!hide.has("veiculo") && <td className="px-3 py-2">—</td>}
                   {!hide.has("observacao") && (
                     <td className="px-3 py-2">
-                      {r.observacao ? (
+                      {editableObs ? (
+                        <ObsCell
+                          equipmentId={r.id}
+                          value={r.observacao}
+                          onUpdate={onUpdateObs}
+                          copiedId={copiedId}
+                          onCopy={copyObs}
+                        />
+                      ) : r.observacao ? (
                         <div className="flex items-center gap-1">
                           <Tooltip>
                             <TooltipTrigger asChild>
@@ -655,6 +668,55 @@ function CargaRow({
         title="Remover carga"
       >
         <Trash2 className="h-3.5 w-3.5" />
+      </button>
+    </div>
+  );
+}
+
+function ObsCell({
+  equipmentId,
+  value,
+  onUpdate,
+  copiedId,
+  onCopy,
+}: {
+  equipmentId: string;
+  value: string | null;
+  onUpdate?: (equipmentId: string, value: string | null) => void;
+  copiedId: string | null;
+  onCopy: (id: string, text: string) => void;
+}) {
+  const [text, setText] = useState(value ?? "");
+
+  // Re-sincroniza o estado local se o valor mudar por fora (ex: outro dispositivo)
+  useEffect(() => {
+    setText(value ?? "");
+  }, [equipmentId, value]);
+
+  function commit() {
+    const v = text || null;
+    if (v !== (value ?? null)) onUpdate?.(equipmentId, v);
+  }
+
+  return (
+    <div className="flex items-center gap-1">
+      <input
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        onBlur={commit}
+        className="w-32 rounded border bg-background px-2 py-1 text-xs"
+      />
+      <button
+        type="button"
+        onClick={() => onCopy(equipmentId, text)}
+        className="rounded p-0.5 text-muted-foreground hover:text-foreground"
+        title="Copiar observação"
+      >
+        {copiedId === equipmentId ? (
+          <Check className="h-3 w-3 text-success" />
+        ) : (
+          <Copy className="h-3 w-3" />
+        )}
       </button>
     </div>
   );
