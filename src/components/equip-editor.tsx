@@ -66,9 +66,6 @@ export function EquipEditor({ rows, onChange }: Props) {
       // Voltando para Equipamento: restaura status de produção
       patch.status_producao = "NOK";
     }
-    if (!isTipoMaterial(newTipo)) {
-      patch.observacao = null;
-    }
     update(i, patch);
   }
 
@@ -269,9 +266,8 @@ export function EquipEditor({ rows, onChange }: Props) {
                   <textarea
                     rows={2}
                     value={r.observacao ?? ""}
-                    disabled={r.tipo === "Equipamento"}
                     onChange={(e) => update(i, { observacao: e.target.value || null })}
-                    className={`w-32 resize-y rounded border px-2 py-1 text-xs ${r.tipo === "Equipamento" ? "bg-muted opacity-60 cursor-not-allowed" : "bg-background"}`}
+                    className="w-32 resize-y rounded border bg-background px-2 py-1 text-xs"
                   />
                 </td>
                 <td className="px-2 py-1.5">

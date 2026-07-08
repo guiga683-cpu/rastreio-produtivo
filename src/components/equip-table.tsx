@@ -474,7 +474,7 @@ export function EquipTable({
                   {!hide.has("veiculo") && <td className="px-3 py-2">—</td>}
                   {!hide.has("observacao") && (
                     <td className="px-3 py-2">
-                      {mat && r.observacao ? (
+                      {r.observacao ? (
                         <div className="flex items-center gap-1">
                           <Tooltip>
                             <TooltipTrigger asChild>

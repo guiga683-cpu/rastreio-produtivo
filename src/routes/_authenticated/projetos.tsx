@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ChevronDown, Pencil, Trash2, Save, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Equipment, Project } from "@/lib/embarques";
-import { isLate, isNext30, isTipoMaterial } from "@/lib/embarques";
+import { isLate, isNext30 } from "@/lib/embarques";
 import { EquipTable } from "@/components/equip-table";
 import { EquipEditor, emptyRow, type DraftEquip } from "@/components/equip-editor";
 
@@ -129,7 +129,7 @@ function ProjectCard({ project, onChanged }: { project: FullProject; onChanged: 
           frete: r.frete,
           peso: null,
           volume: null,
-          observacao: isTipoMaterial(r.tipo) ? r.observacao : null,
+          observacao: r.observacao,
           veiculo: null,
         };
         if (r.id) {
