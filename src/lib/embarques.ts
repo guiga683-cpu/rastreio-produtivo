@@ -32,6 +32,17 @@ export function isTipoMaterial(tipo: TipoItem): boolean {
   return tipo === "Material" || tipo === "Material TRT";
 }
 
+export interface Carga {
+  id: string;
+  equipment_id: string;
+  descricao: string;
+  valor: number;
+  peso: number | null;
+  volume: number | null;
+  veiculo: string | null;
+  created_at?: string;
+}
+
 const _brl = new Intl.NumberFormat("pt-BR", {
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
