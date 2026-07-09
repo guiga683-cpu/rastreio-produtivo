@@ -61,6 +61,8 @@ interface Props {
   /** Habilita edição inline de Obs — uso exclusivo do Dashboard. */
   editableObs?: boolean;
   onUpdateObs?: (equipmentId: string, value: string | null) => void;
+  /** Ordenação inicial (estado inicial apenas — clique no cabeçalho continua funcionando normalmente). */
+  defaultSort?: { key: string; direction: "asc" | "desc" };
 }
 
 const PROJ_W = 140;
@@ -84,17 +86,23 @@ export function EquipTable({
   onUpdateStatusField,
   editableObs = false,
   onUpdateObs,
+  defaultSort,
 }: Props) {
   const today = todayISO();
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
-  const { sortCriteria, handleSort, sortData } = useSort<Row>({
-    posicao: "number",
-    valor_unitario: "number",
-    quantidade: "number",
-    data_producao: "date",
-    data_embarque: "date",
-  });
+  const { sortCriteria, handleSort, sortData } = useSort<Row>(
+    {
+      posicao: "number",
+      valor_unitario: "number",
+      quantidade: "number",
+      data_producao: "date",
+      data_embarque: "date",
+    },
+    defaultSort
+      ? [{ key: defaultSort.key, direction: defaultSort.direction, priority: 1 }]
+      : undefined,
+  );
 
   const hide = new Set<HideableColumn>(hiddenColumns ?? []);
 

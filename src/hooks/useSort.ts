@@ -9,8 +9,11 @@ export interface SortCriteria {
   priority: number;
 }
 
-export function useSort<T>(columnTypes: Record<string, SortColumnType> = {}) {
-  const [sortCriteria, setSortCriteria] = useState<SortCriteria[]>([]);
+export function useSort<T>(
+  columnTypes: Record<string, SortColumnType> = {},
+  initialSortCriteria?: SortCriteria[],
+) {
+  const [sortCriteria, setSortCriteria] = useState<SortCriteria[]>(initialSortCriteria ?? []);
 
   const handleSort = useCallback((key: string, isShift: boolean) => {
     setSortCriteria((prev) => {
