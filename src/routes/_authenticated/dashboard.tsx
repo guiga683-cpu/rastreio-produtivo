@@ -201,6 +201,7 @@ function Dashboard() {
           onUpdateStatusField={handleUpdateStatusField}
           editableObs
           onUpdateObs={handleUpdateObs}
+          defaultSort={{ key: "data_embarque", direction: "asc" }}
         />
       </section>
 
@@ -228,6 +229,7 @@ function Dashboard() {
           onUpdateStatusField={handleUpdateStatusField}
           editableObs
           onUpdateObs={handleUpdateObs}
+          defaultSort={{ key: "data_embarque", direction: "asc" }}
         />
       </section>
     </div>
@@ -247,6 +249,7 @@ function Next30Section({
   onUpdateStatusField,
   editableObs,
   onUpdateObs,
+  defaultSort,
 }: {
   rows: Next30Row[];
   isLoading: boolean;
@@ -260,6 +263,7 @@ function Next30Section({
   onUpdateStatusField?: ComponentProps<typeof EquipTable>["onUpdateStatusField"];
   editableObs?: ComponentProps<typeof EquipTable>["editableObs"];
   onUpdateObs?: ComponentProps<typeof EquipTable>["onUpdateObs"];
+  defaultSort?: ComponentProps<typeof EquipTable>["defaultSort"];
 }) {
   const dedup = Array.from(new Map(rows.map((r) => [r.id, r])).values());
   return (
@@ -278,6 +282,7 @@ function Next30Section({
       onUpdateStatusField={onUpdateStatusField}
       editableObs={editableObs}
       onUpdateObs={onUpdateObs}
+      defaultSort={defaultSort}
     />
   );
 }
