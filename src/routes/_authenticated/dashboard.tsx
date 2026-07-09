@@ -212,7 +212,14 @@ function Dashboard() {
           rows={[...equipEnriched.filter((e) => isLate(e)), ...next30Equip]}
           isLoading={isLoading}
           empty="Nada nos próximos 30 dias."
-          hiddenColumns={["peso", "volume", "veiculo", "status_producao", "status_embarque"]}
+          hiddenColumns={[
+            "peso",
+            "volume",
+            "veiculo",
+            "status_producao",
+            "status_embarque",
+            "custo",
+          ]}
           cargasByEquipment={cargasByEquipment}
           onAddCarga={handleAddCarga}
           onUpdateCarga={handleUpdateCarga}
