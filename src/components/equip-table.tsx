@@ -31,6 +31,7 @@ type HideableColumn =
   | "data_producao"
   | "status_producao"
   | "status_embarque"
+  | "custo"
   | "peso"
   | "volume"
   | "veiculo"
@@ -121,7 +122,8 @@ export function EquipTable({
   colCount += 2; // data faturamento, data embarque
   if (!hide.has("status_embarque")) colCount++;
   colCount++; // frete
-  if (editableStatusFields) colCount += 4; // romaneio, painel, custo, fluxo
+  if (editableStatusFields) colCount += 3; // romaneio, painel, fluxo
+  if (editableStatusFields && !hide.has("custo")) colCount++; // custo
   if (!hide.has("peso")) colCount++;
   if (!hide.has("volume")) colCount++;
   if (!hide.has("veiculo")) colCount++;
@@ -308,9 +310,11 @@ export function EquipTable({
                 <th className="px-3 py-2 font-medium" style={normalTh}>
                   Painel
                 </th>
-                <th className="px-3 py-2 font-medium" style={normalTh}>
-                  Custo
-                </th>
+                {!hide.has("custo") && (
+                  <th className="px-3 py-2 font-medium" style={normalTh}>
+                    Custo
+                  </th>
+                )}
                 <th className="px-3 py-2 font-medium" style={normalTh}>
                   Fluxo
                 </th>
@@ -478,14 +482,16 @@ export function EquipTable({
                           }
                         />
                       </td>
-                      <td className="px-3 py-2">
-                        <StatusToggleBadge
-                          value={r.custo}
-                          onToggle={() =>
-                            onUpdateStatusField?.(r.id, "custo", r.custo === "OK" ? "NOK" : "OK")
-                          }
-                        />
-                      </td>
+                      {!hide.has("custo") && (
+                        <td className="px-3 py-2">
+                          <StatusToggleBadge
+                            value={r.custo}
+                            onToggle={() =>
+                              onUpdateStatusField?.(r.id, "custo", r.custo === "OK" ? "NOK" : "OK")
+                            }
+                          />
+                        </td>
+                      )}
                       <td className="px-3 py-2">
                         <StatusToggleBadge
                           value={r.fluxo}
