@@ -42,6 +42,7 @@ export function emptyRow(): DraftEquip {
     peso: null,
     volume: null,
     observacao: null,
+    nota: null,
     veiculo: null,
     romaneio: "NOK",
     painel: "NOK",
@@ -126,6 +127,9 @@ export function EquipEditor({ rows, onChange }: Props) {
               </th>
               <th className="px-2 py-2 font-medium" style={NORMAL_TH}>
                 Frete
+              </th>
+              <th className="px-2 py-2 font-medium" style={NORMAL_TH}>
+                Link
               </th>
               <th className="px-2 py-2 font-medium" style={NORMAL_TH}>
                 Obs
@@ -273,6 +277,14 @@ export function EquipEditor({ rows, onChange }: Props) {
                   />
                 </td>
                 <td className="px-2 py-1.5">
+                  <textarea
+                    rows={2}
+                    value={r.nota ?? ""}
+                    onChange={(e) => update(i, { nota: e.target.value || null })}
+                    className="w-32 resize-y rounded border bg-background px-2 py-1 text-xs"
+                  />
+                </td>
+                <td className="px-2 py-1.5">
                   <button
                     type="button"
                     onClick={() => remove(i)}
@@ -286,7 +298,7 @@ export function EquipEditor({ rows, onChange }: Props) {
             ))}
             {rows.length === 0 && (
               <tr>
-                <td colSpan={13} className="px-3 py-6 text-center text-sm text-muted-foreground">
+                <td colSpan={14} className="px-3 py-6 text-center text-sm text-muted-foreground">
                   Sem equipamentos. Adicione uma linha.
                 </td>
               </tr>

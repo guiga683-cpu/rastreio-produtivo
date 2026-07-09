@@ -60,6 +60,7 @@ export type Database = {
           fluxo: string;
           frete: string | null;
           id: string;
+          nota: string | null;
           observacao: string | null;
           painel: string;
           peso: number | null;
@@ -85,6 +86,7 @@ export type Database = {
           fluxo?: string;
           frete?: string | null;
           id?: string;
+          nota?: string | null;
           observacao?: string | null;
           painel?: string;
           peso?: number | null;
@@ -110,6 +112,7 @@ export type Database = {
           fluxo?: string;
           frete?: string | null;
           id?: string;
+          nota?: string | null;
           observacao?: string | null;
           painel?: string;
           peso?: number | null;
