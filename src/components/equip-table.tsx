@@ -17,7 +17,7 @@ import {
   TipoBadge,
   StatusToggleBadge,
 } from "@/components/badges";
-import { Copy, Check, ChevronRight, ChevronDown, Plus, Trash2 } from "lucide-react";
+import { Copy, Check, ChevronRight, ChevronDown, Plus, Trash2, Save } from "lucide-react";
 import { useSort } from "@/hooks/useSort";
 import { SortableHeader } from "@/components/sortable-header";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -660,6 +660,7 @@ function CargaRow({
   const [peso, setPeso] = useState(carga.peso == null ? "" : String(carga.peso));
   const [volume, setVolume] = useState(carga.volume == null ? "" : String(carga.volume));
   const [veiculo, setVeiculo] = useState(carga.veiculo ?? "");
+  const [saved, setSaved] = useState(false);
 
   // Re-sincroniza o estado local se a carga mudar por fora (ex: outro dispositivo)
   useEffect(() => {
@@ -670,24 +671,22 @@ function CargaRow({
     setVeiculo(carga.veiculo ?? "");
   }, [carga.id, carga.descricao, carga.valor, carga.peso, carga.volume, carga.veiculo]);
 
-  function commitDescricao() {
-    if (descricao !== (carga.descricao ?? "")) onUpdate?.(carga.id, { descricao });
+  function handleSave() {
+    onUpdate?.(carga.id, {
+      descricao,
+      valor: Number(valor) || 0,
+      peso: peso === "" ? null : Number(peso),
+      volume: volume === "" ? null : Number(volume),
+      veiculo: veiculo || null,
+    });
+    setSaved(true);
+    setTimeout(() => setSaved(false), 1500);
   }
-  function commitValor() {
-    const n = Number(valor) || 0;
-    if (n !== Number(carga.valor ?? 0)) onUpdate?.(carga.id, { valor: n });
-  }
-  function commitPeso() {
-    const n = peso === "" ? null : Number(peso);
-    if (n !== (carga.peso ?? null)) onUpdate?.(carga.id, { peso: n });
-  }
-  function commitVolume() {
-    const n = volume === "" ? null : Number(volume);
-    if (n !== (carga.volume ?? null)) onUpdate?.(carga.id, { volume: n });
-  }
-  function commitVeiculo() {
-    const v = veiculo || null;
-    if (v !== (carga.veiculo ?? null)) onUpdate?.(carga.id, { veiculo: v });
+
+  function handleDelete() {
+    if (window.confirm("Tem certeza que deseja excluir esta carga?")) {
+      onDelete?.(carga.id);
+    }
   }
 
   return (
@@ -696,7 +695,6 @@ function CargaRow({
         value={descricao}
         placeholder="Descrição"
         onChange={(e) => setDescricao(e.target.value)}
-        onBlur={commitDescricao}
         className="w-40 rounded border bg-background px-2 py-1 text-xs"
       />
       <input
@@ -705,7 +703,6 @@ function CargaRow({
         value={valor}
         placeholder="Valor"
         onChange={(e) => setValor(e.target.value)}
-        onBlur={commitValor}
         className="w-28 rounded border bg-background px-2 py-1 text-right text-xs"
       />
       <input
@@ -714,7 +711,6 @@ function CargaRow({
         value={peso}
         placeholder="Peso"
         onChange={(e) => setPeso(e.target.value)}
-        onBlur={commitPeso}
         className="w-20 rounded border bg-background px-2 py-1 text-right text-xs"
       />
       <input
@@ -723,19 +719,25 @@ function CargaRow({
         value={volume}
         placeholder="Volume"
         onChange={(e) => setVolume(e.target.value)}
-        onBlur={commitVolume}
         className="w-20 rounded border bg-background px-2 py-1 text-right text-xs"
       />
       <input
         value={veiculo}
         placeholder="Veículo"
         onChange={(e) => setVeiculo(e.target.value)}
-        onBlur={commitVeiculo}
         className="w-28 rounded border bg-background px-2 py-1 text-xs"
       />
       <button
         type="button"
-        onClick={() => onDelete?.(carga.id)}
+        onClick={handleSave}
+        className="rounded p-1 text-muted-foreground hover:bg-success/10 hover:text-success"
+        title="Salvar carga"
+      >
+        {saved ? <Check className="h-3.5 w-3.5 text-success" /> : <Save className="h-3.5 w-3.5" />}
+      </button>
+      <button
+        type="button"
+        onClick={handleDelete}
         className="rounded p-1 text-muted-foreground hover:bg-danger/10 hover:text-danger"
         title="Remover carga"
       >
