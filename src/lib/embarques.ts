@@ -29,6 +29,8 @@ export interface Equipment {
   veiculo: string | null;
   romaneio: StatusChecklist;
   painel: StatusChecklist;
+  custo: StatusChecklist;
+  fluxo: StatusChecklist;
 }
 
 export function isTipoMaterial(tipo: TipoItem): boolean {
