@@ -103,6 +103,7 @@ export function EquipTable({
       valor_unitario: "number",
       quantidade: "number",
       data_producao: "date",
+      data_faturamento: "date",
       data_embarque: "date",
     },
     defaultSort
@@ -294,7 +295,12 @@ export function EquipTable({
               </th>
             )}
             <th className="px-3 py-2 font-medium" style={normalTh}>
-              Data Faturamento
+              <SortableHeader
+                column="data_faturamento"
+                label="Data Faturamento"
+                sortCriteria={sortCriteria}
+                onSort={handleSort}
+              />
             </th>
             <th className="px-3 py-2 font-medium" style={normalTh}>
               <SortableHeader
