@@ -45,6 +45,8 @@ export function emptyRow(): DraftEquip {
     veiculo: null,
     romaneio: "NOK",
     painel: "NOK",
+    custo: "NOK",
+    fluxo: "NOK",
   };
 }
 

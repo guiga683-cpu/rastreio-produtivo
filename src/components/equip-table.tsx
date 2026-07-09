@@ -50,11 +50,11 @@ interface Props {
   onAddCarga?: (equipmentId: string) => void;
   onUpdateCarga?: (id: string, patch: Partial<Carga>) => void;
   onDeleteCarga?: (id: string) => void;
-  /** Habilita edição inline de Romaneio/Painel — uso exclusivo do Dashboard. */
+  /** Habilita edição inline de Romaneio/Painel/Custo/Fluxo — uso exclusivo do Dashboard. */
   editableStatusFields?: boolean;
   onUpdateStatusField?: (
     equipmentId: string,
-    field: "romaneio" | "painel",
+    field: "romaneio" | "painel" | "custo" | "fluxo",
     value: "OK" | "NOK",
   ) => void;
   /** Habilita edição inline de Obs — uso exclusivo do Dashboard. */
@@ -121,7 +121,7 @@ export function EquipTable({
   colCount += 2; // data faturamento, data embarque
   if (!hide.has("status_embarque")) colCount++;
   colCount++; // frete
-  if (editableStatusFields) colCount += 2; // romaneio, painel
+  if (editableStatusFields) colCount += 4; // romaneio, painel, custo, fluxo
   if (!hide.has("peso")) colCount++;
   if (!hide.has("volume")) colCount++;
   if (!hide.has("veiculo")) colCount++;
@@ -308,6 +308,12 @@ export function EquipTable({
                 <th className="px-3 py-2 font-medium" style={normalTh}>
                   Painel
                 </th>
+                <th className="px-3 py-2 font-medium" style={normalTh}>
+                  Custo
+                </th>
+                <th className="px-3 py-2 font-medium" style={normalTh}>
+                  Fluxo
+                </th>
               </>
             )}
             {!hide.has("peso") && (
@@ -469,6 +475,22 @@ export function EquipTable({
                           value={r.painel}
                           onToggle={() =>
                             onUpdateStatusField?.(r.id, "painel", r.painel === "OK" ? "NOK" : "OK")
+                          }
+                        />
+                      </td>
+                      <td className="px-3 py-2">
+                        <StatusToggleBadge
+                          value={r.custo}
+                          onToggle={() =>
+                            onUpdateStatusField?.(r.id, "custo", r.custo === "OK" ? "NOK" : "OK")
+                          }
+                        />
+                      </td>
+                      <td className="px-3 py-2">
+                        <StatusToggleBadge
+                          value={r.fluxo}
+                          onToggle={() =>
+                            onUpdateStatusField?.(r.id, "fluxo", r.fluxo === "OK" ? "NOK" : "OK")
                           }
                         />
                       </td>

@@ -288,5 +288,7 @@ function toDraft(e: Equipment): DraftEquip {
     veiculo: e.veiculo ?? null,
     romaneio: e.romaneio ?? "NOK",
     painel: e.painel ?? "NOK",
+    custo: e.custo ?? "NOK",
+    fluxo: e.fluxo ?? "NOK",
   };
 }

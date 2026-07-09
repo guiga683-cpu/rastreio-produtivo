@@ -104,7 +104,7 @@ function Dashboard() {
 
   async function handleUpdateStatusField(
     equipmentId: string,
-    field: "romaneio" | "painel",
+    field: "romaneio" | "painel" | "custo" | "fluxo",
     value: "OK" | "NOK",
   ) {
     const { error } = await supabase

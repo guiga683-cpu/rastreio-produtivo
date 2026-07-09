@@ -52,10 +52,12 @@ export type Database = {
       equipments: {
         Row: {
           created_at: string;
+          custo: string;
           data_embarque: string | null;
           data_faturamento: string | null;
           data_producao: string | null;
           equipamento: string;
+          fluxo: string;
           frete: string | null;
           id: string;
           observacao: string | null;
@@ -75,10 +77,12 @@ export type Database = {
         };
         Insert: {
           created_at?: string;
+          custo?: string;
           data_embarque?: string | null;
           data_faturamento?: string | null;
           data_producao?: string | null;
           equipamento?: string;
+          fluxo?: string;
           frete?: string | null;
           id?: string;
           observacao?: string | null;
@@ -98,10 +102,12 @@ export type Database = {
         };
         Update: {
           created_at?: string;
+          custo?: string;
           data_embarque?: string | null;
           data_faturamento?: string | null;
           data_producao?: string | null;
           equipamento?: string;
+          fluxo?: string;
           frete?: string | null;
           id?: string;
           observacao?: string | null;
