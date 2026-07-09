@@ -130,6 +130,7 @@ function ProjectCard({ project, onChanged }: { project: FullProject; onChanged: 
           peso: null,
           volume: null,
           observacao: r.observacao,
+          nota: r.nota,
           veiculo: null,
         };
         if (r.id) {
@@ -285,6 +286,7 @@ function toDraft(e: Equipment): DraftEquip {
     peso: e.peso ?? null,
     volume: e.volume ?? null,
     observacao: e.observacao ?? null,
+    nota: e.nota ?? null,
     veiculo: e.veiculo ?? null,
     romaneio: e.romaneio ?? "NOK",
     painel: e.painel ?? "NOK",

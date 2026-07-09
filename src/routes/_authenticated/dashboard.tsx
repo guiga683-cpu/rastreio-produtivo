@@ -124,6 +124,15 @@ function Dashboard() {
     invalidate();
   }
 
+  async function handleUpdateNota(equipmentId: string, value: string | null) {
+    const { error } = await supabase
+      .from("equipments")
+      .update({ nota: value })
+      .eq("id", equipmentId);
+    if (error) return alert(error.message);
+    invalidate();
+  }
+
   const equipEnriched = enriched.filter((e) => e.tipo === "Equipamento");
   const matEnriched = enriched.filter((e) => isTipoMaterial(e.tipo));
 
@@ -201,6 +210,8 @@ function Dashboard() {
           onUpdateStatusField={handleUpdateStatusField}
           editableObs
           onUpdateObs={handleUpdateObs}
+          editableNota
+          onUpdateNota={handleUpdateNota}
           defaultSort={{ key: "data_embarque", direction: "asc" }}
         />
       </section>
@@ -229,6 +240,8 @@ function Dashboard() {
           onUpdateStatusField={handleUpdateStatusField}
           editableObs
           onUpdateObs={handleUpdateObs}
+          editableNota
+          onUpdateNota={handleUpdateNota}
           defaultSort={{ key: "data_embarque", direction: "asc" }}
         />
       </section>
@@ -249,6 +262,8 @@ function Next30Section({
   onUpdateStatusField,
   editableObs,
   onUpdateObs,
+  editableNota,
+  onUpdateNota,
   defaultSort,
 }: {
   rows: Next30Row[];
@@ -263,6 +278,8 @@ function Next30Section({
   onUpdateStatusField?: ComponentProps<typeof EquipTable>["onUpdateStatusField"];
   editableObs?: ComponentProps<typeof EquipTable>["editableObs"];
   onUpdateObs?: ComponentProps<typeof EquipTable>["onUpdateObs"];
+  editableNota?: ComponentProps<typeof EquipTable>["editableNota"];
+  onUpdateNota?: ComponentProps<typeof EquipTable>["onUpdateNota"];
   defaultSort?: ComponentProps<typeof EquipTable>["defaultSort"];
 }) {
   const dedup = Array.from(new Map(rows.map((r) => [r.id, r])).values());
@@ -282,6 +299,8 @@ function Next30Section({
       onUpdateStatusField={onUpdateStatusField}
       editableObs={editableObs}
       onUpdateObs={onUpdateObs}
+      editableNota={editableNota}
+      onUpdateNota={onUpdateNota}
       defaultSort={defaultSort}
     />
   );

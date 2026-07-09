@@ -26,6 +26,7 @@ export interface Equipment {
   peso: number | null;
   volume: number | null;
   observacao: string | null;
+  nota: string | null;
   veiculo: string | null;
   romaneio: StatusChecklist;
   painel: StatusChecklist;

@@ -48,6 +48,7 @@ function NovoProjeto() {
             peso: null,
             volume: null,
             observacao: r.observacao,
+            nota: r.nota,
             veiculo: null,
           })),
         );

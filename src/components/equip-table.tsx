@@ -35,7 +35,8 @@ type HideableColumn =
   | "peso"
   | "volume"
   | "veiculo"
-  | "observacao";
+  | "observacao"
+  | "nota";
 
 interface Props {
   rows: Row[];
@@ -58,9 +59,12 @@ interface Props {
     field: "romaneio" | "painel" | "custo" | "fluxo",
     value: "OK" | "NOK",
   ) => void;
-  /** Habilita edição inline de Obs — uso exclusivo do Dashboard. */
+  /** Habilita edição inline de Link — uso exclusivo do Dashboard. */
   editableObs?: boolean;
   onUpdateObs?: (equipmentId: string, value: string | null) => void;
+  /** Habilita edição inline de Obs (campo "nota") — uso exclusivo do Dashboard. */
+  editableNota?: boolean;
+  onUpdateNota?: (equipmentId: string, value: string | null) => void;
   /** Ordenação inicial (estado inicial apenas — clique no cabeçalho continua funcionando normalmente). */
   defaultSort?: { key: string; direction: "asc" | "desc" };
 }
@@ -86,6 +90,8 @@ export function EquipTable({
   onUpdateStatusField,
   editableObs = false,
   onUpdateObs,
+  editableNota = false,
+  onUpdateNota,
   defaultSort,
 }: Props) {
   const today = todayISO();
@@ -136,6 +142,7 @@ export function EquipTable({
   if (!hide.has("volume")) colCount++;
   if (!hide.has("veiculo")) colCount++;
   if (!hide.has("observacao")) colCount++;
+  if (!hide.has("nota")) colCount++;
 
   // Frozen column header: always sticky-left; additionally sticky-top when stickyHeader
   function frozenTh(left: number, extra?: CSSProperties): CSSProperties {
@@ -345,6 +352,11 @@ export function EquipTable({
             )}
             {!hide.has("observacao") && (
               <th className="px-3 py-2 font-medium" style={normalTh}>
+                Link
+              </th>
+            )}
+            {!hide.has("nota") && (
+              <th className="px-3 py-2 font-medium" style={normalTh}>
                 Obs
               </th>
             )}
@@ -553,6 +565,24 @@ export function EquipTable({
                       )}
                     </td>
                   )}
+                  {!hide.has("nota") && (
+                    <td className="px-3 py-2">
+                      {editableNota ? (
+                        <NotaCell equipmentId={r.id} value={r.nota} onUpdate={onUpdateNota} />
+                      ) : r.nota ? (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="max-w-[200px] truncate cursor-default block">
+                              {r.nota}
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs break-all">{r.nota}</TooltipContent>
+                        </Tooltip>
+                      ) : (
+                        "—"
+                      )}
+                    </td>
+                  )}
                 </tr>
                 {isExpanded && (
                   <tr className="border-t bg-muted/20">
@@ -755,5 +785,36 @@ function ObsCell({
         )}
       </button>
     </div>
+  );
+}
+
+function NotaCell({
+  equipmentId,
+  value,
+  onUpdate,
+}: {
+  equipmentId: string;
+  value: string | null;
+  onUpdate?: (equipmentId: string, value: string | null) => void;
+}) {
+  const [text, setText] = useState(value ?? "");
+
+  // Re-sincroniza o estado local se o valor mudar por fora (ex: outro dispositivo)
+  useEffect(() => {
+    setText(value ?? "");
+  }, [equipmentId, value]);
+
+  function commit() {
+    const v = text || null;
+    if (v !== (value ?? null)) onUpdate?.(equipmentId, v);
+  }
+
+  return (
+    <input
+      value={text}
+      onChange={(e) => setText(e.target.value)}
+      onBlur={commit}
+      className="w-32 rounded border bg-background px-2 py-1 text-xs"
+    />
   );
 }
