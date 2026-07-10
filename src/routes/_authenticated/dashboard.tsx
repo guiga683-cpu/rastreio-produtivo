@@ -2,10 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Carga, Equipment, Project } from "@/lib/embarques";
-import { isLate, isNext30, isTipoMaterial } from "@/lib/embarques";
+import { isLate, isNext10, isNext30, isTipoMaterial } from "@/lib/embarques";
 import { EquipTable } from "@/components/equip-table";
-import { AlertTriangle, CalendarClock, FolderKanban, Boxes, Package } from "lucide-react";
-import { useEffect, type ComponentProps } from "react";
+import { useEffect, useState, type ComponentProps } from "react";
 import { seedExampleIfEmpty } from "@/lib/seed";
 
 type Next30Row = Equipment & { project?: Project };
@@ -17,6 +16,7 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 
 function Dashboard() {
   const qc = useQueryClient();
+  const [janela, setJanela] = useState<"10" | "30">("30");
   const { data, refetch, isLoading } = useQuery({
     queryKey: ["all-data"],
     queryFn: async () => {
@@ -136,10 +136,21 @@ function Dashboard() {
   const equipEnriched = enriched.filter((e) => e.tipo === "Equipamento");
   const matEnriched = enriched.filter((e) => isTipoMaterial(e.tipo));
 
-  const lateEquip = equipEnriched.filter((e) => isLate(e));
-  const lateMat = matEnriched.filter((e) => isLate(e));
+  const next10Equip = equipEnriched.filter((e) => isNext10(e));
+  const next10Mat = matEnriched.filter((e) => isNext10(e));
   const next30Equip = equipEnriched.filter((e) => isNext30(e));
   const next30Mat = matEnriched.filter((e) => isNext30(e));
+
+  const rows10Mat = [...matEnriched.filter((e) => isLate(e)), ...next10Mat];
+  const rows10Equip = [...equipEnriched.filter((e) => isLate(e)), ...next10Equip];
+  const rows30Mat = [...matEnriched.filter((e) => isLate(e)), ...next30Mat];
+  const rows30Equip = [...equipEnriched.filter((e) => isLate(e)), ...next30Equip];
+  const count10 = Array.from(
+    new Map([...rows10Mat, ...rows10Equip].map((r) => [r.id, r])).values(),
+  ).length;
+  const count30 = Array.from(
+    new Map([...rows30Mat, ...rows30Equip].map((r) => [r.id, r])).values(),
+  ).length;
 
   return (
     <div className="space-y-6">
@@ -148,33 +159,18 @@ function Dashboard() {
         <p className="text-sm text-muted-foreground">Visão geral dos embarques.</p>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-        <MetricCard
-          icon={<AlertTriangle className="h-4 w-4" />}
-          label="Atrasados"
-          value={lateEquip.length + lateMat.length}
-          tone="danger"
+      <div className="flex flex-wrap items-center gap-3">
+        <JanelaCard
+          label="Próximos 10 dias"
+          count={count10}
+          active={janela === "10"}
+          onClick={() => setJanela("10")}
         />
-        <MetricCard
-          icon={<CalendarClock className="h-4 w-4" />}
+        <JanelaCard
           label="Próximos 30 dias"
-          value={next30Equip.length + next30Mat.length}
-          tone="warning"
-        />
-        <MetricCard
-          icon={<FolderKanban className="h-4 w-4" />}
-          label="Total de projetos"
-          value={projects.length}
-        />
-        <MetricCard
-          icon={<Boxes className="h-4 w-4" />}
-          label="Equipamentos"
-          value={equipEnriched.length}
-        />
-        <MetricCard
-          icon={<Package className="h-4 w-4" />}
-          label="Materiais"
-          value={matEnriched.length}
+          count={count30}
+          active={janela === "30"}
+          onClick={() => setJanela("30")}
         />
       </div>
 
@@ -185,66 +181,133 @@ function Dashboard() {
         <LegendDot color="bg-card border" label="Dentro do prazo" />
       </div>
 
-      <section className="space-y-2">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-          Materiais — Próximos 30 dias (inclui atrasados)
-        </h2>
-        <Next30Section
-          rows={[...matEnriched.filter((e) => isLate(e)), ...next30Mat]}
-          isLoading={isLoading}
-          empty="Nada nos próximos 30 dias."
-          hiddenColumns={[
-            "posicao",
-            "data_producao",
-            "status_producao",
-            "peso",
-            "volume",
-            "veiculo",
-            "status_embarque",
-          ]}
-          cargasByEquipment={cargasByEquipment}
-          onAddCarga={handleAddCarga}
-          onUpdateCarga={handleUpdateCarga}
-          onDeleteCarga={handleDeleteCarga}
-          editableStatusFields
-          onUpdateStatusField={handleUpdateStatusField}
-          editableObs
-          onUpdateObs={handleUpdateObs}
-          editableNota
-          onUpdateNota={handleUpdateNota}
-          defaultSort={{ key: "data_embarque", direction: "asc" }}
-        />
-      </section>
+      {janela === "10" ? (
+        <>
+          <section className="space-y-2">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+              Materiais — Próximos 10 dias
+            </h2>
+            <Next30Section
+              rows={rows10Mat}
+              isLoading={isLoading}
+              empty="Nada nos próximos 10 dias."
+              hiddenColumns={[
+                "posicao",
+                "data_producao",
+                "status_producao",
+                "peso",
+                "volume",
+                "veiculo",
+                "status_embarque",
+              ]}
+              cargasByEquipment={cargasByEquipment}
+              onAddCarga={handleAddCarga}
+              onUpdateCarga={handleUpdateCarga}
+              onDeleteCarga={handleDeleteCarga}
+              editableStatusFields
+              onUpdateStatusField={handleUpdateStatusField}
+              editableObs
+              onUpdateObs={handleUpdateObs}
+              editableNota
+              onUpdateNota={handleUpdateNota}
+              defaultSort={{ key: "data_embarque", direction: "asc" }}
+            />
+          </section>
 
-      <section className="space-y-2">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-          Equipamentos — Próximos 30 dias (inclui atrasados)
-        </h2>
-        <Next30Section
-          rows={[...equipEnriched.filter((e) => isLate(e)), ...next30Equip]}
-          isLoading={isLoading}
-          empty="Nada nos próximos 30 dias."
-          hiddenColumns={[
-            "peso",
-            "volume",
-            "veiculo",
-            "status_producao",
-            "status_embarque",
-            "custo",
-          ]}
-          cargasByEquipment={cargasByEquipment}
-          onAddCarga={handleAddCarga}
-          onUpdateCarga={handleUpdateCarga}
-          onDeleteCarga={handleDeleteCarga}
-          editableStatusFields
-          onUpdateStatusField={handleUpdateStatusField}
-          editableObs
-          onUpdateObs={handleUpdateObs}
-          editableNota
-          onUpdateNota={handleUpdateNota}
-          defaultSort={{ key: "data_embarque", direction: "asc" }}
-        />
-      </section>
+          <section className="space-y-2">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+              Equipamentos — Próximos 10 dias
+            </h2>
+            <Next30Section
+              rows={rows10Equip}
+              isLoading={isLoading}
+              empty="Nada nos próximos 10 dias."
+              hiddenColumns={[
+                "peso",
+                "volume",
+                "veiculo",
+                "status_producao",
+                "status_embarque",
+                "custo",
+              ]}
+              cargasByEquipment={cargasByEquipment}
+              onAddCarga={handleAddCarga}
+              onUpdateCarga={handleUpdateCarga}
+              onDeleteCarga={handleDeleteCarga}
+              editableStatusFields
+              onUpdateStatusField={handleUpdateStatusField}
+              editableObs
+              onUpdateObs={handleUpdateObs}
+              editableNota
+              onUpdateNota={handleUpdateNota}
+              defaultSort={{ key: "data_embarque", direction: "asc" }}
+            />
+          </section>
+        </>
+      ) : (
+        <>
+          <section className="space-y-2">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+              Materiais — Próximos 30 dias (inclui atrasados)
+            </h2>
+            <Next30Section
+              rows={rows30Mat}
+              isLoading={isLoading}
+              empty="Nada nos próximos 30 dias."
+              hiddenColumns={[
+                "posicao",
+                "data_producao",
+                "status_producao",
+                "peso",
+                "volume",
+                "veiculo",
+                "status_embarque",
+              ]}
+              cargasByEquipment={cargasByEquipment}
+              onAddCarga={handleAddCarga}
+              onUpdateCarga={handleUpdateCarga}
+              onDeleteCarga={handleDeleteCarga}
+              editableStatusFields
+              onUpdateStatusField={handleUpdateStatusField}
+              editableObs
+              onUpdateObs={handleUpdateObs}
+              editableNota
+              onUpdateNota={handleUpdateNota}
+              defaultSort={{ key: "data_embarque", direction: "asc" }}
+            />
+          </section>
+
+          <section className="space-y-2">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+              Equipamentos — Próximos 30 dias (inclui atrasados)
+            </h2>
+            <Next30Section
+              rows={rows30Equip}
+              isLoading={isLoading}
+              empty="Nada nos próximos 30 dias."
+              hiddenColumns={[
+                "peso",
+                "volume",
+                "veiculo",
+                "status_producao",
+                "status_embarque",
+                "custo",
+              ]}
+              cargasByEquipment={cargasByEquipment}
+              onAddCarga={handleAddCarga}
+              onUpdateCarga={handleUpdateCarga}
+              onDeleteCarga={handleDeleteCarga}
+              editableStatusFields
+              onUpdateStatusField={handleUpdateStatusField}
+              editableObs
+              onUpdateObs={handleUpdateObs}
+              editableNota
+              onUpdateNota={handleUpdateNota}
+              defaultSort={{ key: "data_embarque", direction: "asc" }}
+            />
+          </section>
+        </>
+      )}
     </div>
   );
 }
@@ -306,32 +369,28 @@ function Next30Section({
   );
 }
 
-function MetricCard({
-  icon,
+function JanelaCard({
   label,
-  value,
-  tone,
+  count,
+  active,
+  onClick,
 }: {
-  icon: React.ReactNode;
   label: string;
-  value: number;
-  tone?: "danger" | "warning";
+  count: number;
+  active: boolean;
+  onClick: () => void;
 }) {
-  const ring =
-    tone === "danger"
-      ? "border-danger/30 bg-danger/5"
-      : tone === "warning"
-        ? "border-warning/40 bg-warning/10"
-        : "bg-card";
-  const valueColor =
-    tone === "danger" ? "text-danger" : tone === "warning" ? "text-warning-foreground" : "";
   return (
-    <div className={`rounded-lg border p-4 shadow-sm ${ring}`}>
-      <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-        {icon} {label}
-      </div>
-      <div className={`mt-2 text-3xl font-semibold tabular-nums ${valueColor}`}>{value}</div>
-    </div>
+    <button
+      type="button"
+      role="button"
+      aria-pressed={active}
+      onClick={onClick}
+      className={`rounded-lg border px-4 py-2 text-left shadow-sm transition-colors ${active ? "border-primary bg-primary/10" : "border-border bg-card hover:bg-muted/40"}`}
+    >
+      <div className="text-xs font-medium text-muted-foreground">{label}</div>
+      <div className="text-2xl font-semibold tabular-nums">{count}</div>
+    </button>
   );
 }
 
