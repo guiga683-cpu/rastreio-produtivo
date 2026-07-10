@@ -92,6 +92,12 @@ export function isNext30(e: Equipment, today = todayISO()): boolean {
   return d >= 0 && d <= 30;
 }
 
+export function isNext10(e: Equipment, today = todayISO()): boolean {
+  if (e.status_embarque !== "Não expedido" || !e.data_embarque) return false;
+  const d = daysBetween(today, e.data_embarque);
+  return d >= 0 && d <= 10;
+}
+
 export function isToday(e: Equipment, today = todayISO()): boolean {
   return e.status_embarque === "Não expedido" && e.data_embarque === today;
 }
