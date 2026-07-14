@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Carga, Equipment, Project } from "@/lib/embarques";
 import { isLate, isNext10, isNext30, isTipoMaterial } from "@/lib/embarques";
@@ -8,6 +8,28 @@ import { useEffect, useState, type ComponentProps } from "react";
 import { seedExampleIfEmpty } from "@/lib/seed";
 
 type Next30Row = Equipment & { project?: Project };
+
+type AllData = { projects: Project[]; equipments: Equipment[]; cargas: Carga[] };
+
+function cargaTotal(cargas: Carga[], equipmentId: string): number {
+  return cargas
+    .filter((c) => c.equipment_id === equipmentId)
+    .reduce((s, c) => s + Number(c.valor || 0), 0);
+}
+
+function withEquipmentTotal(old: AllData, equipmentId: string, cargas: Carga[]): AllData {
+  const total = cargaTotal(cargas, equipmentId);
+  const equipments = old.equipments.map((e) =>
+    e.id === equipmentId ? { ...e, valor_unitario: total } : e,
+  );
+  return { ...old, cargas, equipments };
+}
+
+function cargaErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  const message = (error as { message?: string } | null)?.message;
+  return message ?? "Erro ao salvar carga";
+}
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — Embarques" }] }),
@@ -68,38 +90,112 @@ function Dashboard() {
     if (error) throw error;
   }
 
-  async function handleAddCarga(equipmentId: string) {
-    const { data: inserted, error } = await supabase
-      .from("cargas")
-      .insert({ equipment_id: equipmentId, descricao: "Carga", valor: 0 })
-      .select()
-      .single();
-    if (error) return alert(error.message);
-    const updated = [...(cargasByEquipment.get(equipmentId) ?? []), inserted as Carga];
-    await syncValorUnitario(equipmentId, updated);
-    invalidate();
+  // As três mutations de cargas abaixo usam o padrão onMutate/onError/onSettled
+  // do TanStack Query: cancelQueries antes de qualquer escrita local garante que
+  // um refetch de "all-data" ainda em voo (disparado por uma ação anterior) não
+  // sobrescreva o cache com dados desatualizados; a atualização otimista faz a UI
+  // refletir a mudança imediatamente, sem esperar o refetch; onError reverte o
+  // cache para o snapshot anterior; onSettled dispara um único invalidate ao final.
+  const addCargaMutation = useMutation({
+    mutationFn: async (equipmentId: string) => {
+      const { data: inserted, error } = await supabase
+        .from("cargas")
+        .insert({ equipment_id: equipmentId, descricao: "Carga", valor: 0 })
+        .select()
+        .single();
+      if (error) throw error;
+      const carga = inserted as Carga;
+      const current = qc.getQueryData<AllData>(["all-data"]);
+      const existing = (current?.cargas ?? []).filter((c) => c.equipment_id === equipmentId);
+      await syncValorUnitario(equipmentId, [...existing, carga]);
+      return carga;
+    },
+    onMutate: async () => {
+      await qc.cancelQueries({ queryKey: ["all-data"] });
+    },
+    onSuccess: (carga) => {
+      qc.setQueryData<AllData>(["all-data"], (old) =>
+        old ? withEquipmentTotal(old, carga.equipment_id, [...old.cargas, carga]) : old,
+      );
+    },
+    onError: (error) => alert(cargaErrorMessage(error)),
+    onSettled: () => invalidate(),
+  });
+
+  const updateCargaMutation = useMutation({
+    mutationFn: async ({ id, patch }: { id: string; patch: Partial<Carga> }) => {
+      const { error } = await supabase.from("cargas").update(patch).eq("id", id);
+      if (error) throw error;
+      const current = qc.getQueryData<AllData>(["all-data"]);
+      const carga = current?.cargas.find((c) => c.id === id);
+      if (carga) {
+        const updated = current!.cargas
+          .filter((c) => c.equipment_id === carga.equipment_id)
+          .map((c) => (c.id === id ? { ...c, ...patch } : c));
+        await syncValorUnitario(carga.equipment_id, updated);
+      }
+    },
+    onMutate: async ({ id, patch }) => {
+      await qc.cancelQueries({ queryKey: ["all-data"] });
+      const previous = qc.getQueryData<AllData>(["all-data"]);
+      qc.setQueryData<AllData>(["all-data"], (old) => {
+        if (!old) return old;
+        const target = old.cargas.find((c) => c.id === id);
+        if (!target) return old;
+        const cargas = old.cargas.map((c) => (c.id === id ? { ...c, ...patch } : c));
+        return withEquipmentTotal(old, target.equipment_id, cargas);
+      });
+      return { previous };
+    },
+    onError: (error, _vars, context) => {
+      if (context?.previous) qc.setQueryData(["all-data"], context.previous);
+      alert(cargaErrorMessage(error));
+    },
+    onSettled: () => invalidate(),
+  });
+
+  const deleteCargaMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("cargas").delete().eq("id", id);
+      if (error) throw error;
+      const current = qc.getQueryData<AllData>(["all-data"]);
+      const carga = current?.cargas.find((c) => c.id === id);
+      if (carga) {
+        const remaining = current!.cargas.filter(
+          (c) => c.equipment_id === carga.equipment_id && c.id !== id,
+        );
+        await syncValorUnitario(carga.equipment_id, remaining);
+      }
+    },
+    onMutate: async (id) => {
+      await qc.cancelQueries({ queryKey: ["all-data"] });
+      const previous = qc.getQueryData<AllData>(["all-data"]);
+      qc.setQueryData<AllData>(["all-data"], (old) => {
+        if (!old) return old;
+        const target = old.cargas.find((c) => c.id === id);
+        if (!target) return old;
+        const cargas = old.cargas.filter((c) => c.id !== id);
+        return withEquipmentTotal(old, target.equipment_id, cargas);
+      });
+      return { previous };
+    },
+    onError: (error, _id, context) => {
+      if (context?.previous) qc.setQueryData(["all-data"], context.previous);
+      alert(cargaErrorMessage(error));
+    },
+    onSettled: () => invalidate(),
+  });
+
+  function handleAddCarga(equipmentId: string) {
+    return addCargaMutation.mutateAsync(equipmentId);
   }
 
-  async function handleUpdateCarga(id: string, patch: Partial<Carga>) {
-    const carga = cargas.find((c) => c.id === id);
-    if (!carga) return;
-    const { error } = await supabase.from("cargas").update(patch).eq("id", id);
-    if (error) return alert(error.message);
-    const updated = (cargasByEquipment.get(carga.equipment_id) ?? []).map((c) =>
-      c.id === id ? { ...c, ...patch } : c,
-    );
-    await syncValorUnitario(carga.equipment_id, updated);
-    invalidate();
+  function handleUpdateCarga(id: string, patch: Partial<Carga>) {
+    return updateCargaMutation.mutateAsync({ id, patch });
   }
 
-  async function handleDeleteCarga(id: string) {
-    const carga = cargas.find((c) => c.id === id);
-    if (!carga) return;
-    const { error } = await supabase.from("cargas").delete().eq("id", id);
-    if (error) return alert(error.message);
-    const updated = (cargasByEquipment.get(carga.equipment_id) ?? []).filter((c) => c.id !== id);
-    await syncValorUnitario(carga.equipment_id, updated);
-    invalidate();
+  function handleDeleteCarga(id: string) {
+    return deleteCargaMutation.mutateAsync(id);
   }
 
   async function handleUpdateStatusField(

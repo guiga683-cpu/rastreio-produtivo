@@ -49,9 +49,9 @@ interface Props {
   /** Habilita o cadastro/edição de cargas por item (Material/Material TRT) — uso exclusivo do Dashboard. */
   editableCargas?: boolean;
   cargasByEquipment?: Map<string, Carga[]>;
-  onAddCarga?: (equipmentId: string) => void;
-  onUpdateCarga?: (id: string, patch: Partial<Carga>) => void;
-  onDeleteCarga?: (id: string) => void;
+  onAddCarga?: (equipmentId: string) => void | Promise<unknown>;
+  onUpdateCarga?: (id: string, patch: Partial<Carga>) => void | Promise<unknown>;
+  onDeleteCarga?: (id: string) => void | Promise<unknown>;
   /** Habilita edição inline de Romaneio/Painel/Custo/Fluxo — uso exclusivo do Dashboard. */
   editableStatusFields?: boolean;
   onUpdateStatusField?: (
@@ -621,10 +621,23 @@ function CargasEditor({
 }: {
   equipmentId: string;
   cargas: Carga[];
-  onAdd?: (equipmentId: string) => void;
-  onUpdate?: (id: string, patch: Partial<Carga>) => void;
-  onDelete?: (id: string) => void;
+  onAdd?: (equipmentId: string) => void | Promise<unknown>;
+  onUpdate?: (id: string, patch: Partial<Carga>) => void | Promise<unknown>;
+  onDelete?: (id: string) => void | Promise<unknown>;
 }) {
+  const [isAdding, setIsAdding] = useState(false);
+
+  async function handleAdd() {
+    setIsAdding(true);
+    try {
+      await onAdd?.(equipmentId);
+    } catch {
+      // erro já sinalizado pelo handler (alert); usuário pode tentar de novo
+    } finally {
+      setIsAdding(false);
+    }
+  }
+
   return (
     <div className="space-y-2 p-3">
       <div className="space-y-1.5">
@@ -637,8 +650,9 @@ function CargasEditor({
       </div>
       <button
         type="button"
-        onClick={() => onAdd?.(equipmentId)}
-        className="inline-flex items-center gap-1 rounded-md border border-dashed px-2 py-1 text-xs text-muted-foreground hover:bg-accent hover:text-foreground"
+        onClick={handleAdd}
+        disabled={isAdding}
+        className="inline-flex items-center gap-1 rounded-md border border-dashed px-2 py-1 text-xs text-muted-foreground hover:bg-accent hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
       >
         <Plus className="h-3.5 w-3.5" /> Nova carga
       </button>
@@ -652,8 +666,8 @@ function CargaRow({
   onDelete,
 }: {
   carga: Carga;
-  onUpdate?: (id: string, patch: Partial<Carga>) => void;
-  onDelete?: (id: string) => void;
+  onUpdate?: (id: string, patch: Partial<Carga>) => void | Promise<unknown>;
+  onDelete?: (id: string) => void | Promise<unknown>;
 }) {
   const [descricao, setDescricao] = useState(carga.descricao ?? "");
   const [valor, setValor] = useState(String(carga.valor ?? 0));
@@ -661,31 +675,53 @@ function CargaRow({
   const [volume, setVolume] = useState(carga.volume == null ? "" : String(carga.volume));
   const [veiculo, setVeiculo] = useState(carga.veiculo ?? "");
   const [saved, setSaved] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [hasError, setHasError] = useState(false);
 
-  // Re-sincroniza o estado local se a carga mudar por fora (ex: outro dispositivo)
+  // Re-sincroniza o estado local se a carga mudar por fora (ex: outro dispositivo).
+  // Suspenso enquanto isSaving/hasError: evita que um rollback otimista ou um
+  // refetch concorrente sobrescreva o valor que o usuário acabou de digitar.
   useEffect(() => {
+    if (isSaving || hasError) return;
     setDescricao(carga.descricao ?? "");
     setValor(String(carga.valor ?? 0));
     setPeso(carga.peso == null ? "" : String(carga.peso));
     setVolume(carga.volume == null ? "" : String(carga.volume));
     setVeiculo(carga.veiculo ?? "");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [carga.id, carga.descricao, carga.valor, carga.peso, carga.volume, carga.veiculo]);
 
-  function handleSave() {
-    onUpdate?.(carga.id, {
-      descricao,
-      valor: Number(valor) || 0,
-      peso: peso === "" ? null : Number(peso),
-      volume: volume === "" ? null : Number(volume),
-      veiculo: veiculo || null,
-    });
-    setSaved(true);
-    setTimeout(() => setSaved(false), 1500);
+  async function handleSave() {
+    setIsSaving(true);
+    try {
+      await onUpdate?.(carga.id, {
+        descricao,
+        valor: Number(valor) || 0,
+        peso: peso === "" ? null : Number(peso),
+        volume: volume === "" ? null : Number(volume),
+        veiculo: veiculo || null,
+      });
+      setHasError(false);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 1500);
+    } catch {
+      // erro já sinalizado pelo handler (alert); mantém o que o usuário digitou
+      setHasError(true);
+    } finally {
+      setIsSaving(false);
+    }
   }
 
-  function handleDelete() {
-    if (window.confirm("Tem certeza que deseja excluir esta carga?")) {
-      onDelete?.(carga.id);
+  async function handleDelete() {
+    if (!window.confirm("Tem certeza que deseja excluir esta carga?")) return;
+    setIsDeleting(true);
+    try {
+      await onDelete?.(carga.id);
+    } catch {
+      // erro já sinalizado pelo handler (alert); linha volta após o rollback
+    } finally {
+      setIsDeleting(false);
     }
   }
 
@@ -694,7 +730,10 @@ function CargaRow({
       <input
         value={descricao}
         placeholder="Descrição"
-        onChange={(e) => setDescricao(e.target.value)}
+        onChange={(e) => {
+          setDescricao(e.target.value);
+          setHasError(false);
+        }}
         className="w-40 rounded border bg-background px-2 py-1 text-xs"
       />
       <input
@@ -702,7 +741,10 @@ function CargaRow({
         step="0.01"
         value={valor}
         placeholder="Valor"
-        onChange={(e) => setValor(e.target.value)}
+        onChange={(e) => {
+          setValor(e.target.value);
+          setHasError(false);
+        }}
         className="w-28 rounded border bg-background px-2 py-1 text-right text-xs"
       />
       <input
@@ -710,7 +752,10 @@ function CargaRow({
         step="0.01"
         value={peso}
         placeholder="Peso"
-        onChange={(e) => setPeso(e.target.value)}
+        onChange={(e) => {
+          setPeso(e.target.value);
+          setHasError(false);
+        }}
         className="w-20 rounded border bg-background px-2 py-1 text-right text-xs"
       />
       <input
@@ -718,27 +763,35 @@ function CargaRow({
         step="0.01"
         value={volume}
         placeholder="Volume"
-        onChange={(e) => setVolume(e.target.value)}
+        onChange={(e) => {
+          setVolume(e.target.value);
+          setHasError(false);
+        }}
         className="w-20 rounded border bg-background px-2 py-1 text-right text-xs"
       />
       <input
         value={veiculo}
         placeholder="Veículo"
-        onChange={(e) => setVeiculo(e.target.value)}
+        onChange={(e) => {
+          setVeiculo(e.target.value);
+          setHasError(false);
+        }}
         className="w-28 rounded border bg-background px-2 py-1 text-xs"
       />
       <button
         type="button"
         onClick={handleSave}
-        className="rounded p-1 text-muted-foreground hover:bg-success/10 hover:text-success"
-        title="Salvar carga"
+        disabled={isSaving}
+        title={hasError ? "Falha ao salvar — tente novamente" : "Salvar carga"}
+        className={`rounded p-1 hover:bg-success/10 hover:text-success disabled:cursor-not-allowed disabled:opacity-50 ${hasError ? "text-danger" : "text-muted-foreground"}`}
       >
         {saved ? <Check className="h-3.5 w-3.5 text-success" /> : <Save className="h-3.5 w-3.5" />}
       </button>
       <button
         type="button"
         onClick={handleDelete}
-        className="rounded p-1 text-muted-foreground hover:bg-danger/10 hover:text-danger"
+        disabled={isDeleting}
+        className="rounded p-1 text-muted-foreground hover:bg-danger/10 hover:text-danger disabled:cursor-not-allowed disabled:opacity-50"
         title="Remover carga"
       >
         <Trash2 className="h-3.5 w-3.5" />
