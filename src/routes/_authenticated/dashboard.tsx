@@ -44,8 +44,8 @@ function Dashboard() {
     queryFn: async () => {
       const [pRes, eRes, cRes] = await Promise.all([
         supabase.from("projects").select("id,name,client").order("created_at"),
-        supabase.from("equipments").select("*").order("created_at"),
-        supabase.from("cargas").select("*").order("created_at"),
+        supabase.from("equipments").select("*").order("created_at").order("id"),
+        supabase.from("cargas").select("*").order("created_at").order("id"),
       ]);
       if (pRes.error) throw pRes.error;
       if (eRes.error) throw eRes.error;
