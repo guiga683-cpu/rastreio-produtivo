@@ -186,6 +186,41 @@ function Dashboard() {
     onSettled: () => invalidate(),
   });
 
+  const updateStatusFieldMutation = useMutation({
+    mutationFn: async ({
+      equipmentId,
+      field,
+      value,
+    }: {
+      equipmentId: string;
+      field: "romaneio" | "painel" | "custo" | "fluxo";
+      value: "OK" | "NOK";
+    }) => {
+      const { error } = await supabase
+        .from("equipments")
+        .update({ [field]: value })
+        .eq("id", equipmentId);
+      if (error) throw error;
+    },
+    onMutate: async ({ equipmentId, field, value }) => {
+      await qc.cancelQueries({ queryKey: ["all-data"] });
+      const previous = qc.getQueryData<AllData>(["all-data"]);
+      qc.setQueryData<AllData>(["all-data"], (old) => {
+        if (!old) return old;
+        const equipments = old.equipments.map((e) =>
+          e.id === equipmentId ? { ...e, [field]: value } : e,
+        );
+        return { ...old, equipments };
+      });
+      return { previous };
+    },
+    onError: (error, _vars, context) => {
+      if (context?.previous) qc.setQueryData(["all-data"], context.previous);
+      alert(cargaErrorMessage(error));
+    },
+    onSettled: () => invalidate(),
+  });
+
   function handleAddCarga(equipmentId: string) {
     return addCargaMutation.mutateAsync(equipmentId);
   }
@@ -198,17 +233,12 @@ function Dashboard() {
     return deleteCargaMutation.mutateAsync(id);
   }
 
-  async function handleUpdateStatusField(
+  function handleUpdateStatusField(
     equipmentId: string,
     field: "romaneio" | "painel" | "custo" | "fluxo",
     value: "OK" | "NOK",
   ) {
-    const { error } = await supabase
-      .from("equipments")
-      .update({ [field]: value })
-      .eq("id", equipmentId);
-    if (error) return alert(error.message);
-    invalidate();
+    updateStatusFieldMutation.mutate({ equipmentId, field, value });
   }
 
   async function handleUpdateObs(equipmentId: string, value: string | null) {
