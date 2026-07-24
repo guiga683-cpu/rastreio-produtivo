@@ -4,10 +4,25 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Carga, Equipment, Project } from "@/lib/embarques";
 import { isLate, isNext10, isNext30, isTipoMaterial } from "@/lib/embarques";
 import { EquipTable } from "@/components/equip-table";
-import { useEffect, useState, type ComponentProps } from "react";
+import { Input } from "@/components/ui/input";
+import { useEffect, useMemo, useState, type ComponentProps } from "react";
 import { seedExampleIfEmpty } from "@/lib/seed";
 
 type Next30Row = Equipment & { project?: Project };
+
+function normalizeBusca(value: string): string {
+  return value.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
+}
+
+function filterRowsByBusca(rows: Next30Row[], busca: string): Next30Row[] {
+  const termo = normalizeBusca(busca);
+  if (!termo) return rows;
+  return rows.filter((r) => {
+    const client = normalizeBusca(r.project?.client ?? "");
+    const name = normalizeBusca(r.project?.name ?? "");
+    return client.includes(termo) || name.includes(termo);
+  });
+}
 
 type AllData = { projects: Project[]; equipments: Equipment[]; cargas: Carga[] };
 
@@ -39,6 +54,7 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 function Dashboard() {
   const qc = useQueryClient();
   const [janela, setJanela] = useState<"10" | "30">("30");
+  const [busca, setBusca] = useState("");
   const { data, refetch, isLoading } = useQuery({
     queryKey: ["all-data"],
     queryFn: async () => {
@@ -318,6 +334,17 @@ function Dashboard() {
     new Map([...rows30Mat, ...rows30Equip].map((r) => [r.id, r])).values(),
   ).length;
 
+  const rows10MatFiltrado = useMemo(() => filterRowsByBusca(rows10Mat, busca), [rows10Mat, busca]);
+  const rows10EquipFiltrado = useMemo(
+    () => filterRowsByBusca(rows10Equip, busca),
+    [rows10Equip, busca],
+  );
+  const rows30MatFiltrado = useMemo(() => filterRowsByBusca(rows30Mat, busca), [rows30Mat, busca]);
+  const rows30EquipFiltrado = useMemo(
+    () => filterRowsByBusca(rows30Equip, busca),
+    [rows30Equip, busca],
+  );
+
   return (
     <div className="space-y-6">
       <div>
@@ -338,6 +365,13 @@ function Dashboard() {
           active={janela === "30"}
           onClick={() => setJanela("30")}
         />
+        <Input
+          type="text"
+          value={busca}
+          onChange={(e) => setBusca(e.target.value)}
+          placeholder="Buscar por cliente ou projeto…"
+          className="ml-auto w-full max-w-xs"
+        />
       </div>
 
       <div className="flex flex-wrap items-center gap-3 text-xs">
@@ -354,9 +388,11 @@ function Dashboard() {
               Materiais — Próximos 10 dias
             </h2>
             <Next30Section
-              rows={rows10Mat}
+              rows={rows10MatFiltrado}
               isLoading={isLoading}
-              empty="Nada nos próximos 10 dias."
+              empty={
+                busca ? `Nenhum item encontrado para "${busca}"` : "Nada nos próximos 10 dias."
+              }
               hiddenColumns={[
                 "posicao",
                 "data_producao",
@@ -386,9 +422,11 @@ function Dashboard() {
               Equipamentos — Próximos 10 dias
             </h2>
             <Next30Section
-              rows={rows10Equip}
+              rows={rows10EquipFiltrado}
               isLoading={isLoading}
-              empty="Nada nos próximos 10 dias."
+              empty={
+                busca ? `Nenhum item encontrado para "${busca}"` : "Nada nos próximos 10 dias."
+              }
               hiddenColumns={["peso", "volume", "veiculo", "status_producao", "custo"]}
               cargasByEquipment={cargasByEquipment}
               onAddCarga={handleAddCarga}
@@ -413,9 +451,11 @@ function Dashboard() {
               Materiais — Próximos 30 dias (inclui atrasados)
             </h2>
             <Next30Section
-              rows={rows30Mat}
+              rows={rows30MatFiltrado}
               isLoading={isLoading}
-              empty="Nada nos próximos 30 dias."
+              empty={
+                busca ? `Nenhum item encontrado para "${busca}"` : "Nada nos próximos 30 dias."
+              }
               hiddenColumns={[
                 "posicao",
                 "data_producao",
@@ -445,9 +485,11 @@ function Dashboard() {
               Equipamentos — Próximos 30 dias (inclui atrasados)
             </h2>
             <Next30Section
-              rows={rows30Equip}
+              rows={rows30EquipFiltrado}
               isLoading={isLoading}
-              empty="Nada nos próximos 30 dias."
+              empty={
+                busca ? `Nenhum item encontrado para "${busca}"` : "Nada nos próximos 30 dias."
+              }
               hiddenColumns={["peso", "volume", "veiculo", "status_producao", "custo"]}
               cargasByEquipment={cargasByEquipment}
               onAddCarga={handleAddCarga}
