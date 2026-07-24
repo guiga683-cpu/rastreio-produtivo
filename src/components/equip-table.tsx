@@ -65,6 +65,12 @@ interface Props {
   /** Habilita edição inline de Obs (campo "nota") — uso exclusivo do Dashboard. */
   editableNota?: boolean;
   onUpdateNota?: (equipmentId: string, value: string | null) => void;
+  /** Habilita edição inline de Status Embarque — uso exclusivo do Dashboard. */
+  editableStatusEmbarque?: boolean;
+  onUpdateStatusEmbarque?: (
+    equipmentId: string,
+    value: "Não expedido" | "Expedido" | "Cancelado",
+  ) => void;
   /** Ordenação inicial (estado inicial apenas — clique no cabeçalho continua funcionando normalmente). */
   defaultSort?: { key: string; direction: "asc" | "desc" };
 }
@@ -92,6 +98,8 @@ export function EquipTable({
   onUpdateObs,
   editableNota = false,
   onUpdateNota,
+  editableStatusEmbarque = false,
+  onUpdateStatusEmbarque,
   defaultSort,
 }: Props) {
   const today = todayISO();
@@ -310,16 +318,6 @@ export function EquipTable({
                 onSort={handleSort}
               />
             </th>
-            {!hide.has("status_embarque") && (
-              <th className="px-3 py-2 font-medium" style={normalTh}>
-                <SortableHeader
-                  column="status_embarque"
-                  label="Status Embarque"
-                  sortCriteria={sortCriteria}
-                  onSort={handleSort}
-                />
-              </th>
-            )}
             <th className="px-3 py-2 font-medium" style={normalTh}>
               Frete
             </th>
@@ -364,6 +362,16 @@ export function EquipTable({
             {!hide.has("nota") && (
               <th className="px-3 py-2 font-medium" style={normalTh}>
                 Obs
+              </th>
+            )}
+            {!hide.has("status_embarque") && (
+              <th className="px-3 py-2 font-medium" style={normalTh}>
+                <SortableHeader
+                  column="status_embarque"
+                  label="Status Embarque"
+                  sortCriteria={sortCriteria}
+                  onSort={handleSort}
+                />
               </th>
             )}
           </tr>
@@ -480,11 +488,6 @@ export function EquipTable({
                       {today_ && <TodayBadge />}
                     </div>
                   </td>
-                  {!hide.has("status_embarque") && (
-                    <td className="px-3 py-2">
-                      <EmbarqueBadge value={r.status_embarque} />
-                    </td>
-                  )}
                   <td className="px-3 py-2">{r.frete ?? "—"}</td>
                   {editableStatusFields && (
                     <>
@@ -586,6 +589,28 @@ export function EquipTable({
                         </Tooltip>
                       ) : (
                         "—"
+                      )}
+                    </td>
+                  )}
+                  {!hide.has("status_embarque") && (
+                    <td className="px-3 py-2">
+                      {editableStatusEmbarque ? (
+                        <select
+                          value={r.status_embarque}
+                          onChange={(e) =>
+                            onUpdateStatusEmbarque?.(
+                              r.id,
+                              e.target.value as "Não expedido" | "Expedido" | "Cancelado",
+                            )
+                          }
+                          className="rounded border bg-background px-2 py-1 text-xs"
+                        >
+                          <option>Não expedido</option>
+                          <option>Expedido</option>
+                          <option>Cancelado</option>
+                        </select>
+                      ) : (
+                        <EmbarqueBadge value={r.status_embarque} />
                       )}
                     </td>
                   )}
