@@ -221,6 +221,39 @@ function Dashboard() {
     onSettled: () => invalidate(),
   });
 
+  const updateStatusEmbarqueMutation = useMutation({
+    mutationFn: async ({
+      equipmentId,
+      value,
+    }: {
+      equipmentId: string;
+      value: "Não expedido" | "Expedido" | "Cancelado";
+    }) => {
+      const { error } = await supabase
+        .from("equipments")
+        .update({ status_embarque: value })
+        .eq("id", equipmentId);
+      if (error) throw error;
+    },
+    onMutate: async ({ equipmentId, value }) => {
+      await qc.cancelQueries({ queryKey: ["all-data"] });
+      const previous = qc.getQueryData<AllData>(["all-data"]);
+      qc.setQueryData<AllData>(["all-data"], (old) => {
+        if (!old) return old;
+        const equipments = old.equipments.map((e) =>
+          e.id === equipmentId ? { ...e, status_embarque: value } : e,
+        );
+        return { ...old, equipments };
+      });
+      return { previous };
+    },
+    onError: (error, _vars, context) => {
+      if (context?.previous) qc.setQueryData(["all-data"], context.previous);
+      alert(cargaErrorMessage(error));
+    },
+    onSettled: () => invalidate(),
+  });
+
   function handleAddCarga(equipmentId: string) {
     return addCargaMutation.mutateAsync(equipmentId);
   }
@@ -239,6 +272,13 @@ function Dashboard() {
     value: "OK" | "NOK",
   ) {
     updateStatusFieldMutation.mutate({ equipmentId, field, value });
+  }
+
+  function handleUpdateStatusEmbarque(
+    equipmentId: string,
+    value: "Não expedido" | "Expedido" | "Cancelado",
+  ) {
+    updateStatusEmbarqueMutation.mutate({ equipmentId, value });
   }
 
   async function handleUpdateObs(equipmentId: string, value: string | null) {
@@ -324,7 +364,6 @@ function Dashboard() {
                 "peso",
                 "volume",
                 "veiculo",
-                "status_embarque",
               ]}
               cargasByEquipment={cargasByEquipment}
               onAddCarga={handleAddCarga}
@@ -336,6 +375,8 @@ function Dashboard() {
               onUpdateObs={handleUpdateObs}
               editableNota
               onUpdateNota={handleUpdateNota}
+              editableStatusEmbarque
+              onUpdateStatusEmbarque={handleUpdateStatusEmbarque}
               defaultSort={{ key: "data_embarque", direction: "asc" }}
             />
           </section>
@@ -348,14 +389,7 @@ function Dashboard() {
               rows={rows10Equip}
               isLoading={isLoading}
               empty="Nada nos próximos 10 dias."
-              hiddenColumns={[
-                "peso",
-                "volume",
-                "veiculo",
-                "status_producao",
-                "status_embarque",
-                "custo",
-              ]}
+              hiddenColumns={["peso", "volume", "veiculo", "status_producao", "custo"]}
               cargasByEquipment={cargasByEquipment}
               onAddCarga={handleAddCarga}
               onUpdateCarga={handleUpdateCarga}
@@ -366,6 +400,8 @@ function Dashboard() {
               onUpdateObs={handleUpdateObs}
               editableNota
               onUpdateNota={handleUpdateNota}
+              editableStatusEmbarque
+              onUpdateStatusEmbarque={handleUpdateStatusEmbarque}
               defaultSort={{ key: "data_embarque", direction: "asc" }}
             />
           </section>
@@ -387,7 +423,6 @@ function Dashboard() {
                 "peso",
                 "volume",
                 "veiculo",
-                "status_embarque",
               ]}
               cargasByEquipment={cargasByEquipment}
               onAddCarga={handleAddCarga}
@@ -399,6 +434,8 @@ function Dashboard() {
               onUpdateObs={handleUpdateObs}
               editableNota
               onUpdateNota={handleUpdateNota}
+              editableStatusEmbarque
+              onUpdateStatusEmbarque={handleUpdateStatusEmbarque}
               defaultSort={{ key: "data_embarque", direction: "asc" }}
             />
           </section>
@@ -411,14 +448,7 @@ function Dashboard() {
               rows={rows30Equip}
               isLoading={isLoading}
               empty="Nada nos próximos 30 dias."
-              hiddenColumns={[
-                "peso",
-                "volume",
-                "veiculo",
-                "status_producao",
-                "status_embarque",
-                "custo",
-              ]}
+              hiddenColumns={["peso", "volume", "veiculo", "status_producao", "custo"]}
               cargasByEquipment={cargasByEquipment}
               onAddCarga={handleAddCarga}
               onUpdateCarga={handleUpdateCarga}
@@ -429,6 +459,8 @@ function Dashboard() {
               onUpdateObs={handleUpdateObs}
               editableNota
               onUpdateNota={handleUpdateNota}
+              editableStatusEmbarque
+              onUpdateStatusEmbarque={handleUpdateStatusEmbarque}
               defaultSort={{ key: "data_embarque", direction: "asc" }}
             />
           </section>
@@ -453,6 +485,8 @@ function Next30Section({
   onUpdateObs,
   editableNota,
   onUpdateNota,
+  editableStatusEmbarque,
+  onUpdateStatusEmbarque,
   defaultSort,
 }: {
   rows: Next30Row[];
@@ -469,6 +503,8 @@ function Next30Section({
   onUpdateObs?: ComponentProps<typeof EquipTable>["onUpdateObs"];
   editableNota?: ComponentProps<typeof EquipTable>["editableNota"];
   onUpdateNota?: ComponentProps<typeof EquipTable>["onUpdateNota"];
+  editableStatusEmbarque?: ComponentProps<typeof EquipTable>["editableStatusEmbarque"];
+  onUpdateStatusEmbarque?: ComponentProps<typeof EquipTable>["onUpdateStatusEmbarque"];
   defaultSort?: ComponentProps<typeof EquipTable>["defaultSort"];
 }) {
   const dedup = Array.from(new Map(rows.map((r) => [r.id, r])).values());
@@ -490,6 +526,8 @@ function Next30Section({
       onUpdateObs={onUpdateObs}
       editableNota={editableNota}
       onUpdateNota={onUpdateNota}
+      editableStatusEmbarque={editableStatusEmbarque}
+      onUpdateStatusEmbarque={onUpdateStatusEmbarque}
       defaultSort={defaultSort}
     />
   );
