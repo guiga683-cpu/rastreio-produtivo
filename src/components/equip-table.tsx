@@ -26,6 +26,15 @@ interface Row extends Equipment {
   project?: Project;
 }
 
+export type AddCargaInput = {
+  equipmentId: string;
+  descricao: string;
+  valor: number;
+  peso: number | null;
+  volume: number | null;
+  veiculo: string | null;
+};
+
 type HideableColumn =
   | "posicao"
   | "data_producao"
@@ -49,7 +58,7 @@ interface Props {
   /** Habilita o cadastro/edição de cargas por item (Material/Material TRT) — uso exclusivo do Dashboard. */
   editableCargas?: boolean;
   cargasByEquipment?: Map<string, Carga[]>;
-  onAddCarga?: (equipmentId: string) => void | Promise<unknown>;
+  onAddCarga?: (input: AddCargaInput) => void | Promise<unknown>;
   onUpdateCarga?: (id: string, patch: Partial<Carga>) => void | Promise<unknown>;
   onDeleteCarga?: (id: string) => void | Promise<unknown>;
   /** Habilita edição inline de Romaneio/Painel/Custo/Fluxo — uso exclusivo do Dashboard. */
@@ -646,21 +655,23 @@ function CargasEditor({
 }: {
   equipmentId: string;
   cargas: Carga[];
-  onAdd?: (equipmentId: string) => void | Promise<unknown>;
+  onAdd?: (input: AddCargaInput) => void | Promise<unknown>;
   onUpdate?: (id: string, patch: Partial<Carga>) => void | Promise<unknown>;
   onDelete?: (id: string) => void | Promise<unknown>;
 }) {
-  const [isAdding, setIsAdding] = useState(false);
+  const [drafts, setDrafts] = useState<string[]>([]);
 
-  async function handleAdd() {
-    setIsAdding(true);
-    try {
-      await onAdd?.(equipmentId);
-    } catch {
-      // erro já sinalizado pelo handler (alert); usuário pode tentar de novo
-    } finally {
-      setIsAdding(false);
-    }
+  function handleAddDraft() {
+    setDrafts((prev) => [...prev, crypto.randomUUID()]);
+  }
+
+  function discardDraft(tempId: string) {
+    setDrafts((prev) => prev.filter((id) => id !== tempId));
+  }
+
+  async function saveDraft(tempId: string, payload: Omit<AddCargaInput, "equipmentId">) {
+    await onAdd?.({ equipmentId, ...payload });
+    discardDraft(tempId);
   }
 
   return (
@@ -669,15 +680,21 @@ function CargasEditor({
         {cargas.map((c) => (
           <CargaRow key={c.id} carga={c} onUpdate={onUpdate} onDelete={onDelete} />
         ))}
-        {cargas.length === 0 && (
+        {drafts.map((tempId) => (
+          <DraftCargaRow
+            key={tempId}
+            onSave={(payload) => saveDraft(tempId, payload)}
+            onDiscard={() => discardDraft(tempId)}
+          />
+        ))}
+        {cargas.length === 0 && drafts.length === 0 && (
           <div className="text-xs text-muted-foreground">Nenhuma carga cadastrada.</div>
         )}
       </div>
       <button
         type="button"
-        onClick={handleAdd}
-        disabled={isAdding}
-        className="inline-flex items-center gap-1 rounded-md border border-dashed px-2 py-1 text-xs text-muted-foreground hover:bg-accent hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
+        onClick={handleAddDraft}
+        className="inline-flex items-center gap-1 rounded-md border border-dashed px-2 py-1 text-xs text-muted-foreground hover:bg-accent hover:text-foreground"
       >
         <Plus className="h-3.5 w-3.5" /> Nova carga
       </button>
@@ -818,6 +835,114 @@ function CargaRow({
         disabled={isDeleting}
         className="rounded p-1 text-muted-foreground hover:bg-danger/10 hover:text-danger disabled:cursor-not-allowed disabled:opacity-50"
         title="Remover carga"
+      >
+        <Trash2 className="h-3.5 w-3.5" />
+      </button>
+    </div>
+  );
+}
+
+function DraftCargaRow({
+  onSave,
+  onDiscard,
+}: {
+  onSave: (payload: Omit<AddCargaInput, "equipmentId">) => void | Promise<unknown>;
+  onDiscard: () => void;
+}) {
+  const [descricao, setDescricao] = useState("");
+  const [valor, setValor] = useState("0");
+  const [peso, setPeso] = useState("");
+  const [volume, setVolume] = useState("");
+  const [veiculo, setVeiculo] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [hasError, setHasError] = useState(false);
+
+  async function handleSave() {
+    setIsSaving(true);
+    try {
+      await onSave({
+        descricao,
+        valor: Number(valor) || 0,
+        peso: peso === "" ? null : Number(peso),
+        volume: volume === "" ? null : Number(volume),
+        veiculo: veiculo || null,
+      });
+    } catch {
+      // erro já sinalizado pelo handler (alert); mantém o rascunho para nova tentativa
+      setHasError(true);
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      <input
+        value={descricao}
+        placeholder="Descrição"
+        onChange={(e) => {
+          setDescricao(e.target.value);
+          setHasError(false);
+        }}
+        className="w-40 rounded border bg-background px-2 py-1 text-xs"
+      />
+      <input
+        type="number"
+        step="0.01"
+        value={valor}
+        placeholder="Valor"
+        onChange={(e) => {
+          setValor(e.target.value);
+          setHasError(false);
+        }}
+        className="w-28 rounded border bg-background px-2 py-1 text-right text-xs"
+      />
+      <input
+        type="number"
+        step="0.01"
+        value={peso}
+        placeholder="Peso"
+        onChange={(e) => {
+          setPeso(e.target.value);
+          setHasError(false);
+        }}
+        className="w-20 rounded border bg-background px-2 py-1 text-right text-xs"
+      />
+      <input
+        type="number"
+        step="0.01"
+        value={volume}
+        placeholder="Volume"
+        onChange={(e) => {
+          setVolume(e.target.value);
+          setHasError(false);
+        }}
+        className="w-20 rounded border bg-background px-2 py-1 text-right text-xs"
+      />
+      <input
+        value={veiculo}
+        placeholder="Veículo"
+        onChange={(e) => {
+          setVeiculo(e.target.value);
+          setHasError(false);
+        }}
+        className="w-28 rounded border bg-background px-2 py-1 text-xs"
+      />
+      <button
+        type="button"
+        onClick={handleSave}
+        disabled={isSaving}
+        title={hasError ? "Falha ao salvar — tente novamente" : "Salvar carga"}
+        className={`rounded p-1 hover:bg-success/10 hover:text-success disabled:cursor-not-allowed disabled:opacity-50 ${hasError ? "text-danger" : "text-muted-foreground"}`}
+      >
+        <Save className="h-3.5 w-3.5" />
+      </button>
+      <button
+        type="button"
+        onClick={onDiscard}
+        disabled={isSaving}
+        className="rounded p-1 text-muted-foreground hover:bg-danger/10 hover:text-danger disabled:cursor-not-allowed disabled:opacity-50"
+        title="Descartar rascunho"
       >
         <Trash2 className="h-3.5 w-3.5" />
       </button>
