@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Carga, Equipment, Project } from "@/lib/embarques";
 import { isLate, isNext10, isNext30, isTipoMaterial } from "@/lib/embarques";
-import { EquipTable } from "@/components/equip-table";
+import { EquipTable, type AddCargaInput } from "@/components/equip-table";
 import { Input } from "@/components/ui/input";
 import { useEffect, useMemo, useState, type ComponentProps } from "react";
 import { seedExampleIfEmpty } from "@/lib/seed";
@@ -113,10 +113,11 @@ function Dashboard() {
   // refletir a mudança imediatamente, sem esperar o refetch; onError reverte o
   // cache para o snapshot anterior; onSettled dispara um único invalidate ao final.
   const addCargaMutation = useMutation({
-    mutationFn: async (equipmentId: string) => {
+    mutationFn: async (payload: AddCargaInput) => {
+      const { equipmentId, descricao, valor, peso, volume, veiculo } = payload;
       const { data: inserted, error } = await supabase
         .from("cargas")
-        .insert({ equipment_id: equipmentId, descricao: "Carga", valor: 0 })
+        .insert({ equipment_id: equipmentId, descricao, valor, peso, volume, veiculo })
         .select()
         .single();
       if (error) throw error;
@@ -270,8 +271,8 @@ function Dashboard() {
     onSettled: () => invalidate(),
   });
 
-  function handleAddCarga(equipmentId: string) {
-    return addCargaMutation.mutateAsync(equipmentId);
+  function handleAddCarga(payload: AddCargaInput) {
+    return addCargaMutation.mutateAsync(payload);
   }
 
   function handleUpdateCarga(id: string, patch: Partial<Carga>) {
