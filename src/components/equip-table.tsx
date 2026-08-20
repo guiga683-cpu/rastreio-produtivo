@@ -84,7 +84,7 @@ interface Props {
   defaultSort?: { key: string; direction: "asc" | "desc" };
 }
 
-const PROJ_W = 140;
+const PROJ_W = 175;
 const EQUIP_W = 220;
 const EXPAND_W = 28;
 const SHADOW = "2px 0 4px -1px rgba(0,0,0,0.12)";
