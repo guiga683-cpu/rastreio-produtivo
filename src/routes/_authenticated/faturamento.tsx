@@ -85,7 +85,7 @@ function FaturamentoPage() {
   const [projetosFiltro, setProjetosFiltro] = useState<Set<string>>(new Set());
   const [mesesFiltro, setMesesFiltro] = useState<Set<string>>(new Set());
   const [tiposFiltro, setTiposFiltro] = useState<Set<TipoItem>>(
-    new Set(["Equipamento", "Material", "Material TRT"]),
+    new Set(["Equipamento", "Material", "Material TRT", "Serviço"]),
   );
   const [mostrarFuturo, setMostrarFuturo] = useState(false);
 
@@ -166,6 +166,9 @@ function FaturamentoPage() {
     const fTrt = tot(
       itensFiltrados.filter((e) => e.status_embarque === "Expedido" && e.tipo === "Material TRT"),
     );
+    const fSv = tot(
+      itensFiltrados.filter((e) => e.status_embarque === "Expedido" && e.tipo === "Serviço"),
+    );
     const xEq = tot(
       itensFiltrados.filter(
         (e) => e.status_embarque === "Não expedido" && e.tipo === "Equipamento",
@@ -179,16 +182,21 @@ function FaturamentoPage() {
         (e) => e.status_embarque === "Não expedido" && e.tipo === "Material TRT",
       ),
     );
+    const xSv = tot(
+      itensFiltrados.filter((e) => e.status_embarque === "Não expedido" && e.tipo === "Serviço"),
+    );
     const arr = [
       { label: "Equipamento — Faturado", value: fEq, color: "#185FA5", opacity: 1 },
       { label: "Material — Faturado", value: fMa, color: "#D97706", opacity: 1 },
       { label: "Material TRT — Faturado", value: fTrt, color: "#7C3AED", opacity: 1 },
+      { label: "Serviço — Faturado", value: fSv, color: "#0D9488", opacity: 1 },
     ];
     if (mostrarFuturo) {
       arr.push(
         { label: "Equipamento — Futuro", value: xEq, color: "#185FA5", opacity: 0.5 },
         { label: "Material — Futuro", value: xMa, color: "#D97706", opacity: 0.5 },
         { label: "Material TRT — Futuro", value: xTrt, color: "#7C3AED", opacity: 0.5 },
+        { label: "Serviço — Futuro", value: xSv, color: "#0D9488", opacity: 0.5 },
       );
     }
     return arr.filter((s) => s.value > 0);

@@ -176,6 +176,7 @@ export function EquipEditor({ rows, onChange }: Props) {
                     <option>Equipamento</option>
                     <option>Material</option>
                     <option>Material TRT</option>
+                    <option>Serviço</option>
                   </select>
                 </td>
                 <td className="px-2 py-1.5">
