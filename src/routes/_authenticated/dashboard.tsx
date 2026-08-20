@@ -213,10 +213,8 @@ function Dashboard() {
       field: "romaneio" | "painel" | "custo" | "fluxo";
       value: "OK" | "NOK";
     }) => {
-      const { error } = await supabase
-        .from("equipments")
-        .update({ [field]: value })
-        .eq("id", equipmentId);
+      const patch = { [field]: value } as Record<typeof field, "OK" | "NOK">;
+      const { error } = await supabase.from("equipments").update(patch).eq("id", equipmentId);
       if (error) throw error;
     },
     onMutate: async ({ equipmentId, field, value }) => {
