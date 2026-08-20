@@ -45,6 +45,8 @@ export function TipoBadge({ value }: { value: TipoItem }) {
       ? "bg-warning/20 text-warning-foreground"
       : value === "Material TRT"
         ? "bg-purple-100 text-purple-700"
-        : "bg-primary/10 text-primary";
+        : value === "Serviço"
+          ? "bg-teal-100 text-teal-700"
+          : "bg-primary/10 text-primary";
   return <span className={`pill ${cls}`}>{value}</span>;
 }
