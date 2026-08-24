@@ -24,6 +24,32 @@ export type DraftEquip = Omit<Equipment, "id" | "project_id"> & { id?: string };
 interface Props {
   rows: DraftEquip[];
   onChange: (rows: DraftEquip[]) => void;
+  /** Mostra a barra de ordenação (Posição / Data Embarque) acima da tabela. */
+  sortable?: boolean;
+}
+
+/** Ordena por posição numérica crescente; vazios/não numéricos (materiais) vão para o final. */
+export function sortByPosicao(rows: DraftEquip[]): DraftEquip[] {
+  return [...rows].sort((a, b) => {
+    const na = Number(a.posicao);
+    const nb = Number(b.posicao);
+    const aValid = a.posicao !== null && a.posicao !== "" && !Number.isNaN(na);
+    const bValid = b.posicao !== null && b.posicao !== "" && !Number.isNaN(nb);
+    if (!aValid && !bValid) return 0;
+    if (!aValid) return 1;
+    if (!bValid) return -1;
+    return na - nb;
+  });
+}
+
+/** Ordena por data de embarque crescente ("YYYY-MM-DD"); nulos vão para o final. */
+export function sortByDataEmbarque(rows: DraftEquip[]): DraftEquip[] {
+  return [...rows].sort((a, b) => {
+    if (!a.data_embarque && !b.data_embarque) return 0;
+    if (!a.data_embarque) return 1;
+    if (!b.data_embarque) return -1;
+    return a.data_embarque < b.data_embarque ? -1 : a.data_embarque > b.data_embarque ? 1 : 0;
+  });
 }
 
 export function emptyRow(): DraftEquip {
@@ -51,7 +77,7 @@ export function emptyRow(): DraftEquip {
   };
 }
 
-export function EquipEditor({ rows, onChange }: Props) {
+export function EquipEditor({ rows, onChange, sortable = false }: Props) {
   function update(i: number, patch: Partial<DraftEquip>) {
     const next = rows.slice();
     next[i] = { ...next[i], ...patch };
@@ -81,6 +107,25 @@ export function EquipEditor({ rows, onChange }: Props) {
 
   return (
     <div className="space-y-2">
+      {sortable && (
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <span className="font-medium">Ordenar por:</span>
+          <button
+            type="button"
+            onClick={() => onChange(sortByPosicao(rows))}
+            className="rounded-md border px-2 py-1 hover:bg-accent hover:text-foreground"
+          >
+            Posição
+          </button>
+          <button
+            type="button"
+            onClick={() => onChange(sortByDataEmbarque(rows))}
+            className="rounded-md border px-2 py-1 hover:bg-accent hover:text-foreground"
+          >
+            Data Embarque
+          </button>
+        </div>
+      )}
       <div className="overflow-auto rounded-md border bg-card max-h-[600px]">
         <table className="w-full text-xs">
           <thead className="text-muted-foreground">

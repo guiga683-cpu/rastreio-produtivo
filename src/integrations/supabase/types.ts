@@ -198,6 +198,7 @@ export type Database = {
       projects: {
         Row: {
           client: string
+          concluido: boolean
           created_at: string
           id: string
           name: string
@@ -206,6 +207,7 @@ export type Database = {
         }
         Insert: {
           client: string
+          concluido?: boolean
           created_at?: string
           id?: string
           name: string
@@ -214,6 +216,7 @@ export type Database = {
         }
         Update: {
           client?: string
+          concluido?: boolean
           created_at?: string
           id?: string
           name?: string

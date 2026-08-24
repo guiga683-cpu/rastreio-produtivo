@@ -7,6 +7,7 @@ export interface Project {
   id: string;
   name: string;
   client: string;
+  concluido: boolean;
 }
 
 export interface Equipment {

@@ -1,14 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { ChevronDown, Pencil, Trash2, Save, X } from "lucide-react";
+import { Pencil, Trash2, Save, X, CheckCircle2, RotateCcw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Equipment, Project } from "@/lib/embarques";
 import { isLate, isNext30 } from "@/lib/embarques";
-import { EquipTable } from "@/components/equip-table";
-import { EquipEditor, emptyRow, type DraftEquip } from "@/components/equip-editor";
-
-type ProjEquipRow = Equipment & { project: Project };
+import { EquipEditor, emptyRow, sortByPosicao, type DraftEquip } from "@/components/equip-editor";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 export const Route = createFileRoute("/_authenticated/projetos")({
   head: () => ({ meta: [{ title: "Projetos — Embarques" }] }),
@@ -19,13 +17,16 @@ interface FullProject extends Project {
   equipments: Equipment[];
 }
 
+type StatusFilter = "aberto" | "fechado" | "todos";
+
 function ProjetosPage() {
   const qc = useQueryClient();
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("aberto");
   const { data, isLoading } = useQuery({
     queryKey: ["projetos-full"],
     queryFn: async () => {
       const [pRes, eRes] = await Promise.all([
-        supabase.from("projects").select("id,name,client").order("created_at"),
+        supabase.from("projects").select("id,name,client,concluido").order("created_at"),
         supabase.from("equipments").select("*").order("created_at"),
       ]);
       if (pRes.error) throw pRes.error;
@@ -39,23 +40,48 @@ function ProjetosPage() {
     },
   });
 
-  const projects = data ?? [];
+  const allProjects = data ?? [];
+  const projects = allProjects.filter((p) => {
+    if (statusFilter === "aberto") return !p.concluido;
+    if (statusFilter === "fechado") return p.concluido;
+    return true;
+  });
 
   return (
     <div className="space-y-5">
-      <div>
-        <h1 className="text-xl font-semibold">Projetos</h1>
-        <p className="text-sm text-muted-foreground">
-          Clique em um projeto para ver e editar seus equipamentos.
-        </p>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-semibold">Projetos</h1>
+          <p className="text-sm text-muted-foreground">
+            Clique em "Editar" para ver e editar os equipamentos de um projeto.
+          </p>
+        </div>
+        <ToggleGroup
+          type="single"
+          value={statusFilter}
+          onValueChange={(v) => v && setStatusFilter(v as StatusFilter)}
+          className="justify-start rounded-md border p-0.5"
+        >
+          <ToggleGroupItem value="aberto" className="px-3 py-1 text-xs">
+            Em aberto
+          </ToggleGroupItem>
+          <ToggleGroupItem value="fechado" className="px-3 py-1 text-xs">
+            Fechados
+          </ToggleGroupItem>
+          <ToggleGroupItem value="todos" className="px-3 py-1 text-xs">
+            Todos
+          </ToggleGroupItem>
+        </ToggleGroup>
       </div>
       {isLoading && <div className="text-sm text-muted-foreground">Carregando…</div>}
       {!isLoading && projects.length === 0 && (
         <div className="rounded-md border border-dashed bg-card/50 p-8 text-center text-sm text-muted-foreground">
-          Nenhum projeto ainda. Crie um na aba "Novo projeto".
+          {allProjects.length === 0
+            ? 'Nenhum projeto ainda. Crie um na aba "Novo projeto".'
+            : "Nenhum projeto nesse filtro."}
         </div>
       )}
-      <div className="space-y-3">
+      <div className="grid grid-cols-1 items-start gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {projects.map((p) => (
           <ProjectCard
             key={p.id}
@@ -69,12 +95,12 @@ function ProjetosPage() {
 }
 
 function ProjectCard({ project, onChanged }: { project: FullProject; onChanged: () => void }) {
-  const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(project.name);
   const [client, setClient] = useState(project.client);
   const [rows, setRows] = useState<DraftEquip[]>(() => project.equipments.map(toDraft));
   const [saving, setSaving] = useState(false);
+  const [togglingConcluido, setTogglingConcluido] = useState(false);
 
   const total = project.equipments.length;
   const late = project.equipments.filter((e) => isLate(e)).length;
@@ -88,12 +114,27 @@ function ProjectCard({ project, onChanged }: { project: FullProject; onChanged: 
     else onChanged();
   }
 
+  async function toggleConcluido() {
+    setTogglingConcluido(true);
+    try {
+      const { error } = await supabase
+        .from("projects")
+        .update({ concluido: !project.concluido })
+        .eq("id", project.id);
+      if (error) throw error;
+      onChanged();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Erro");
+    } finally {
+      setTogglingConcluido(false);
+    }
+  }
+
   function startEdit() {
     setName(project.name);
     setClient(project.client);
-    setRows(project.equipments.map(toDraft));
+    setRows(sortByPosicao(project.equipments.map(toDraft)));
     setEditing(true);
-    setOpen(true);
   }
 
   async function save() {
@@ -152,120 +193,110 @@ function ProjectCard({ project, onChanged }: { project: FullProject; onChanged: 
     }
   }
 
-  const enriched = project.equipments.map((e) => ({ ...e, project }));
-
   return (
-    <div className="overflow-hidden rounded-lg border bg-card shadow-sm">
+    <div
+      className={`overflow-hidden rounded-lg border bg-card shadow-sm ${editing ? "col-span-full" : ""}`}
+    >
       <div className="flex flex-wrap items-center gap-3 p-4">
-        <button
-          onClick={() => setOpen((v) => !v)}
-          className="flex flex-1 items-center gap-3 text-left"
-        >
-          <ChevronDown
-            className={`h-4 w-4 text-muted-foreground transition-transform ${
-              open ? "rotate-0" : "-rotate-90"
-            }`}
-          />
-          <div>
-            <div className="text-sm font-semibold">{project.name}</div>
-            <div className="text-xs text-muted-foreground">{project.client}</div>
+        <div className="flex-1">
+          <div className="text-sm font-semibold">{project.name}</div>
+          <div className="text-xs text-muted-foreground">{project.client}</div>
+        </div>
+        {!editing && (
+          <div className="flex flex-wrap items-center gap-1">
+            <button
+              onClick={startEdit}
+              className="inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs hover:bg-accent"
+            >
+              <Pencil className="h-3 w-3" /> Editar
+            </button>
+            <button
+              onClick={toggleConcluido}
+              disabled={togglingConcluido}
+              className={`inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs disabled:opacity-60 ${
+                project.concluido
+                  ? "border-warning/50 bg-warning/10 text-warning-foreground hover:bg-warning/20"
+                  : "hover:bg-accent"
+              }`}
+            >
+              {project.concluido ? (
+                <>
+                  <RotateCcw className="h-3 w-3" /> Reabrir
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 className="h-3 w-3" /> Concluir
+                </>
+              )}
+            </button>
+            <button
+              onClick={remove}
+              className="inline-flex items-center gap-1 rounded-md border border-danger/30 px-2 py-1 text-xs text-danger hover:bg-danger/10"
+            >
+              <Trash2 className="h-3 w-3" /> Excluir
+            </button>
           </div>
-        </button>
-        <div className="flex flex-wrap items-center gap-1.5">
-          <span className="pill bg-muted text-muted-foreground">{total} equip.</span>
-          {late > 0 && <span className="pill bg-danger/15 text-danger">{late} atrasados</span>}
-          {next > 0 && (
-            <span className="pill bg-warning/20 text-warning-foreground">{next} prox. 30d</span>
-          )}
-          {exp > 0 && <span className="pill bg-success/15 text-success">{exp} expedidos</span>}
-        </div>
-        <div className="flex items-center gap-1">
-          {!editing && (
-            <>
-              <button
-                onClick={startEdit}
-                className="inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs hover:bg-accent"
-              >
-                <Pencil className="h-3 w-3" /> Editar
-              </button>
-              <button
-                onClick={remove}
-                className="inline-flex items-center gap-1 rounded-md border border-danger/30 px-2 py-1 text-xs text-danger hover:bg-danger/10"
-              >
-                <Trash2 className="h-3 w-3" /> Excluir
-              </button>
-            </>
-          )}
-        </div>
+        )}
       </div>
 
-      {open && (
+      {editing && (
         <div className="border-t bg-background/30 p-4">
-          {editing ? (
-            <div className="space-y-4">
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div>
-                  <label className="mb-1 block text-xs font-medium">Projeto</label>
-                  <input
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="w-full rounded-md border bg-background px-3 py-2 text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="mb-1 block text-xs font-medium">Cliente</label>
-                  <input
-                    value={client}
-                    onChange={(e) => setClient(e.target.value)}
-                    className="w-full rounded-md border bg-background px-3 py-2 text-sm"
-                  />
-                </div>
+          <div className="space-y-4">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <label className="mb-1 block text-xs font-medium">Projeto</label>
+                <input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+                />
               </div>
-              <EquipEditor rows={rows} onChange={setRows} />
-              <div className="flex gap-2">
-                <button
-                  onClick={save}
-                  disabled={saving}
-                  className="inline-flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
-                >
-                  <Save className="h-3.5 w-3.5" /> {saving ? "Salvando…" : "Salvar"}
-                </button>
-                <button
-                  onClick={() => {
-                    setEditing(false);
-                    setRows(project.equipments.map(toDraft));
-                  }}
-                  className="inline-flex items-center gap-1 rounded-md border px-3 py-1.5 text-xs hover:bg-accent"
-                >
-                  <X className="h-3.5 w-3.5" /> Cancelar
-                </button>
-                <button
-                  onClick={() => setRows((r) => [...r, emptyRow()])}
-                  className="inline-flex items-center gap-1 rounded-md border border-dashed px-3 py-1.5 text-xs text-muted-foreground hover:bg-accent hover:text-foreground"
-                >
-                  + Nova linha
-                </button>
+              <div>
+                <label className="mb-1 block text-xs font-medium">Cliente</label>
+                <input
+                  value={client}
+                  onChange={(e) => setClient(e.target.value)}
+                  className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+                />
               </div>
             </div>
-          ) : (
-            <SortedEquipList rows={enriched} />
-          )}
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="pill bg-muted text-muted-foreground">{total} equip.</span>
+              {late > 0 && <span className="pill bg-danger/15 text-danger">{late} atrasados</span>}
+              {next > 0 && (
+                <span className="pill bg-warning/20 text-warning-foreground">{next} prox. 30d</span>
+              )}
+              {exp > 0 && <span className="pill bg-success/15 text-success">{exp} expedidos</span>}
+            </div>
+            <EquipEditor rows={rows} onChange={setRows} sortable />
+            <div className="flex gap-2">
+              <button
+                onClick={save}
+                disabled={saving}
+                className="inline-flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
+              >
+                <Save className="h-3.5 w-3.5" /> {saving ? "Salvando…" : "Salvar"}
+              </button>
+              <button
+                onClick={() => {
+                  setEditing(false);
+                  setRows(project.equipments.map(toDraft));
+                }}
+                className="inline-flex items-center gap-1 rounded-md border px-3 py-1.5 text-xs hover:bg-accent"
+              >
+                <X className="h-3.5 w-3.5" /> Cancelar
+              </button>
+              <button
+                onClick={() => setRows((r) => [...r, emptyRow()])}
+                className="inline-flex items-center gap-1 rounded-md border border-dashed px-3 py-1.5 text-xs text-muted-foreground hover:bg-accent hover:text-foreground"
+              >
+                + Nova linha
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
-  );
-}
-
-function SortedEquipList({ rows }: { rows: ProjEquipRow[] }) {
-  return (
-    <EquipTable
-      rows={rows}
-      showProject={false}
-      empty="Projeto sem equipamentos."
-      stickyHeader
-      maxHeight="600px"
-      hiddenColumns={["peso", "volume", "veiculo"]}
-    />
   );
 }
 
