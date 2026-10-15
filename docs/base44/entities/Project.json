@@ -1,0 +1,36 @@
+{
+  "name": "Project",
+  "type": "object",
+  "description": "Projeto de um cliente. Agrupa os itens (Equipment) a produzir/embarcar. Origem: tabela public.projects.",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Nome/código do projeto (ex.: B5000572). Obrigatório no cadastro (tela Novo projeto). Origem: projects.name (NOT NULL)."
+    },
+    "client": {
+      "type": "string",
+      "description": "Nome do cliente (ex.: Kamesq). Obrigatório no cadastro. Origem: projects.client (NOT NULL)."
+    },
+    "concluido": {
+      "type": "boolean",
+      "default": false,
+      "description": "true = projeto concluído/fechado. Usado SOMENTE no filtro Em aberto/Fechados/Todos da tela Projetos e no botão Concluir/Reabrir. NÃO esconde o projeto do Dashboard nem do Faturamento. Origem: projects.concluido (NOT NULL DEFAULT false)."
+    },
+    "legacy_id": {
+      "type": "string",
+      "description": "UUID original do projeto no Supabase (projects.id). Usado apenas na migração para religar Equipment.project_id. Vazio em projetos criados no Base44."
+    },
+    "legacy_created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data/hora de criação original (projects.created_at). Preserva a ordem original dos cards. Ordenação do app: legacy_created_at se preenchido, senão created_date. Vazio em projetos criados no Base44."
+    }
+  },
+  "required": ["name", "client"],
+  "rls": {
+    "create": { "user_condition": { "approval_status": "approved" } },
+    "read": { "user_condition": { "approval_status": "approved" } },
+    "update": { "user_condition": { "approval_status": "approved" } },
+    "delete": { "user_condition": { "approval_status": "approved" } }
+  }
+}

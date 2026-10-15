@@ -1,0 +1,27 @@
+{
+  "name": "MetaFaturamento",
+  "type": "object",
+  "description": "Meta anual de faturamento, COMPARTILHADA por todos os usuários: no máximo UM registro por ano. Origem: tabela public.metas_faturamento (UNIQUE (ano)).",
+  "properties": {
+    "ano": {
+      "type": "integer",
+      "description": "Ano da meta (ex.: 2026). ÚNICO: antes de criar, procure um registro com o mesmo ano e atualize-o (upsert). Origem: metas_faturamento.ano INTEGER NOT NULL UNIQUE."
+    },
+    "valor": {
+      "type": "number",
+      "default": 0,
+      "description": "Valor da meta em R$. Origem: metas_faturamento.valor NUMERIC NOT NULL DEFAULT 0."
+    },
+    "legacy_id": {
+      "type": "string",
+      "description": "UUID original no Supabase (metas_faturamento.id)."
+    }
+  },
+  "required": ["ano", "valor"],
+  "rls": {
+    "create": { "user_condition": { "approval_status": "approved" } },
+    "read": { "user_condition": { "approval_status": "approved" } },
+    "update": { "user_condition": { "approval_status": "approved" } },
+    "delete": { "user_condition": { "approval_status": "approved" } }
+  }
+}

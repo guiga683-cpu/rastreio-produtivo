@@ -1,0 +1,133 @@
+{
+  "name": "Equipment",
+  "type": "object",
+  "description": "Item de um projeto (linha da planilha de embarque). Apesar do nome, representa 4 tipos: Equipamento, Material, Material TRT e Serviço (campo tipo). Origem: tabela public.equipments.",
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "description": "REFERÊNCIA ao Project dono do item (id do registro Project no Base44). Obrigatório. Ao excluir o Project, excluir também todos os Equipment dele (e as Cargas desses Equipment). Origem: equipments.project_id (FK ON DELETE CASCADE)."
+    },
+    "equipamento": {
+      "type": "string",
+      "default": "",
+      "description": "Descrição do item (texto livre, pode ter várias linhas). Rótulo na tela: 'Equipamento' (na planilha de Materiais: 'Descrição'). Origem: equipments.equipamento (NOT NULL DEFAULT '')."
+    },
+    "tipo": {
+      "type": "string",
+      "enum": ["Equipamento", "Material", "Material TRT", "Serviço"],
+      "default": "Equipamento",
+      "description": "Tipo do item. 'Equipamento' usa posição e produção; 'Material', 'Material TRT' e 'Serviço' são tratados como materiais (sem posição/produção, com cargas). Origem: equipments.tipo (TEXT NOT NULL DEFAULT 'Equipamento')."
+    },
+    "posicao": {
+      "type": "string",
+      "default": "",
+      "description": "Posição/TAG do equipamento (texto; quando numérico é ordenado como número). Editável só quando tipo = Equipamento; vira vazio (null) ao trocar para tipo material. Opcional. Origem: equipments.posicao (TEXT, NULL permitido)."
+    },
+    "valor_unitario": {
+      "type": "number",
+      "default": 0,
+      "description": "Valor unitário em R$ (2 casas). Para itens de tipo material que têm Cargas, este campo é recalculado automaticamente = soma de Carga.valor do item. Origem: equipments.valor_unitario NUMERIC(14,2) NOT NULL DEFAULT 0."
+    },
+    "quantidade": {
+      "type": "integer",
+      "default": 1,
+      "description": "Quantidade (inteiro, mínimo 1 no formulário). Subtotal = valor_unitario × quantidade. Origem: equipments.quantidade INTEGER NOT NULL DEFAULT 1."
+    },
+    "data_producao": {
+      "type": "string",
+      "format": "date",
+      "description": "Data de produção (AAAA-MM-DD). Só para tipo Equipamento. Opcional. Origem: equipments.data_producao DATE."
+    },
+    "status_producao": {
+      "type": "string",
+      "enum": ["OK", "NOK"],
+      "default": "NOK",
+      "description": "Status de produção. Só para tipo Equipamento; fica vazio (null) nos tipos material. Origem: equipments.status_producao TEXT CHECK IN ('OK','NOK'), DEFAULT 'NOK', NULL permitido."
+    },
+    "data_embarque": {
+      "type": "string",
+      "format": "date",
+      "description": "Data prevista de embarque (AAAA-MM-DD). Base de TODAS as regras de atraso, janelas de 10/30 dias e do faturamento por mês/ano. Opcional. Origem: equipments.data_embarque DATE."
+    },
+    "status_embarque": {
+      "type": "string",
+      "enum": ["Não expedido", "Expedido", "Cancelado"],
+      "default": "Não expedido",
+      "description": "Status de embarque. Expedido = faturado; Não expedido = futuro/pendente; Cancelado = ignorado no faturamento. Origem: equipments.status_embarque TEXT NOT NULL DEFAULT 'Não expedido' CHECK."
+    },
+    "data_faturamento": {
+      "type": "string",
+      "format": "date",
+      "description": "Data de faturamento (AAAA-MM-DD). Apenas informativa (exibida e exportada); NÃO entra em nenhum cálculo. Opcional. Origem: equipments.data_faturamento DATE."
+    },
+    "frete": {
+      "type": "string",
+      "enum": ["CIF", "FOB"],
+      "description": "Modalidade de frete. Opcional (vazio = '—'). Origem: equipments.frete TEXT CHECK IN ('CIF','FOB'), NULL permitido."
+    },
+    "peso": {
+      "type": "number",
+      "description": "LEGADO. Peso do item. As telas de cadastro/edição sempre gravam vazio; a coluna da tabela sempre mostra '—'. Só aparece na exportação XLSX (aba Materiais, 'Peso (kg)'). Manter para migração. Origem: equipments.peso NUMERIC(10,2)."
+    },
+    "volume": {
+      "type": "number",
+      "description": "LEGADO. Volume do item. Mesmo comportamento de peso; exportado como 'Volume (m³)'. Origem: equipments.volume NUMERIC(10,2)."
+    },
+    "veiculo": {
+      "type": "string",
+      "description": "LEGADO. Veículo do item. As telas sempre gravam vazio; não é exibido. Origem: equipments.veiculo TEXT."
+    },
+    "observacao": {
+      "type": "string",
+      "description": "Campo exibido na tela com o rótulo 'Link' (texto livre, normalmente um link). Tem botão de copiar. Exportado como 'Observação' na aba Materiais. Opcional. Origem: equipments.observacao TEXT."
+    },
+    "nota": {
+      "type": "string",
+      "description": "Campo exibido na tela com o rótulo 'Obs' (observação livre). Opcional. Origem: equipments.nota TEXT."
+    },
+    "romaneio": {
+      "type": "string",
+      "enum": ["OK", "NOK"],
+      "default": "NOK",
+      "description": "Checklist 'Romaneio' (alternado no Dashboard com um clique). Origem: equipments.romaneio TEXT NOT NULL DEFAULT 'NOK'."
+    },
+    "painel": {
+      "type": "string",
+      "enum": ["OK", "NOK"],
+      "default": "NOK",
+      "description": "Checklist 'Painel'. Origem: equipments.painel TEXT NOT NULL DEFAULT 'NOK'."
+    },
+    "custo": {
+      "type": "string",
+      "enum": ["OK", "NOK"],
+      "default": "NOK",
+      "description": "Checklist 'Custo' (exibido só na seção Materiais do Dashboard). Origem: equipments.custo TEXT NOT NULL DEFAULT 'NOK'."
+    },
+    "fluxo": {
+      "type": "string",
+      "enum": ["OK", "NOK"],
+      "default": "NOK",
+      "description": "Checklist 'Fluxo'. Origem: equipments.fluxo TEXT NOT NULL DEFAULT 'NOK'."
+    },
+    "legacy_id": {
+      "type": "string",
+      "description": "UUID original do item no Supabase (equipments.id). Usado na migração para religar Carga.equipment_id."
+    },
+    "legacy_project_id": {
+      "type": "string",
+      "description": "UUID original do projeto (equipments.project_id). Usado na migração para descobrir o novo project_id (Project.legacy_id = legacy_project_id)."
+    },
+    "legacy_created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data/hora de criação original (equipments.created_at). Ordem padrão: legacy_created_at se preenchido, senão created_date."
+    }
+  },
+  "required": ["project_id", "equipamento", "tipo", "valor_unitario", "quantidade", "status_embarque", "romaneio", "painel", "custo", "fluxo"],
+  "rls": {
+    "create": { "user_condition": { "approval_status": "approved" } },
+    "read": { "user_condition": { "approval_status": "approved" } },
+    "update": { "user_condition": { "approval_status": "approved" } },
+    "delete": { "user_condition": { "approval_status": "approved" } }
+  }
+}

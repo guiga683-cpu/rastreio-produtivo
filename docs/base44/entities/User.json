@@ -1,0 +1,28 @@
+{
+  "name": "User",
+  "type": "object",
+  "description": "Campos ADICIONAIS da entidade nativa User do Base44 (ela já tem id, email, full_name, role, created_date). Substitui as tabelas public.profiles (status de aprovação) e public.user_roles (papel admin/user).",
+  "properties": {
+    "role": {
+      "type": "string",
+      "enum": ["admin", "user"],
+      "default": "user",
+      "description": "CAMPO NATIVO do Base44 (não criar de novo, só usar). 'admin' = administrador (vê a aba Admin, aprova usuários, promove/rebaixa admins). Equivale a existir uma linha em user_roles com role='admin'."
+    },
+    "approval_status": {
+      "type": "string",
+      "enum": ["pending", "approved", "rejected"],
+      "default": "pending",
+      "description": "Status de aprovação do acesso. Todo cadastro novo nasce 'pending'. Só 'approved' entra no app. 'rejected' é bloqueado. Rótulos na tela: Pendente / Aprovado / Rejeitado. Origem: profiles.status (enum approval_status, DEFAULT 'pending'). SOMENTE admin pode alterar este campo (o próprio usuário NÃO pode se autoaprovar)."
+    },
+    "legacy_id": {
+      "type": "string",
+      "description": "UUID original do usuário no Supabase (auth.users.id = profiles.id). Apenas referência histórica; senhas não migram."
+    }
+  },
+  "rls": {
+    "read": { "$or": [ { "id": "{{user.id}}" }, { "user_condition": { "role": "admin" } } ] },
+    "update": { "user_condition": { "role": "admin" } },
+    "delete": { "user_condition": { "role": "admin" } }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "name": "Carga",
+  "type": "object",
+  "description": "Carga (parcela de embarque) de um item de tipo material (Material, Material TRT ou Serviço). A soma de Carga.valor do item vira o Equipment.valor_unitario. Origem: tabela public.cargas.",
+  "properties": {
+    "equipment_id": {
+      "type": "string",
+      "description": "REFERÊNCIA ao Equipment dono da carga (id do registro Equipment no Base44). Obrigatório. Ao excluir o Equipment, excluir também as cargas dele. Origem: cargas.equipment_id (FK ON DELETE CASCADE)."
+    },
+    "descricao": {
+      "type": "string",
+      "default": "",
+      "description": "Descrição da carga. Origem: cargas.descricao TEXT NOT NULL DEFAULT ''."
+    },
+    "valor": {
+      "type": "number",
+      "default": 0,
+      "description": "Valor da carga em R$ (2 casas). Origem: cargas.valor NUMERIC(14,2) NOT NULL DEFAULT 0."
+    },
+    "peso": {
+      "type": "number",
+      "description": "Peso da carga (opcional). Origem: cargas.peso NUMERIC(14,2)."
+    },
+    "volume": {
+      "type": "number",
+      "description": "Volume da carga (opcional). Origem: cargas.volume NUMERIC(14,2)."
+    },
+    "veiculo": {
+      "type": "string",
+      "description": "Veículo da carga (opcional, texto livre). Origem: cargas.veiculo TEXT."
+    },
+    "legacy_id": {
+      "type": "string",
+      "description": "UUID original da carga no Supabase (cargas.id)."
+    },
+    "legacy_equipment_id": {
+      "type": "string",
+      "description": "UUID original do item (cargas.equipment_id). Usado na migração para descobrir o novo equipment_id (Equipment.legacy_id = legacy_equipment_id)."
+    },
+    "legacy_created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data/hora de criação original (cargas.created_at). Ordem das cargas: legacy_created_at se preenchido, senão created_date."
+    }
+  },
+  "required": ["equipment_id", "descricao", "valor"],
+  "rls": {
+    "create": { "user_condition": { "approval_status": "approved" } },
+    "read": { "user_condition": { "approval_status": "approved" } },
+    "update": { "user_condition": { "approval_status": "approved" } },
+    "delete": { "user_condition": { "approval_status": "approved" } }
+  }
+}
