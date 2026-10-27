@@ -10,14 +10,19 @@ export const Route = createFileRoute("/auth")({
     search.senhaAtualizada === true || search.senhaAtualizada === "true"
       ? { senhaAtualizada: true }
       : {},
-  head: () => ({ meta: [
-    { title: "Entrar — Embarques" },
-    { name: "description", content: "Entre no Embarques para acompanhar projetos e prazos de embarque." },
-    { property: "og:title", content: "Entrar — Embarques" },
-    { property: "og:description", content: "Acesse sua conta no Embarques." },
-    { property: "og:type", content: "website" },
-    { name: "twitter:card", content: "summary" },
-  ] }),
+  head: () => ({
+    meta: [
+      { title: "Entrar — Embarques" },
+      {
+        name: "description",
+        content: "Entre no Embarques para acompanhar projetos e prazos de embarque.",
+      },
+      { property: "og:title", content: "Entrar — Embarques" },
+      { property: "og:description", content: "Acesse sua conta no Embarques." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   component: AuthPage,
 });
 
@@ -141,7 +146,11 @@ function AuthPage() {
                 className="w-full rounded-md border bg-background px-3 py-2 text-sm"
               />
               {mode === "login" && (
-                <Button asChild variant="link" className="mt-2 h-auto p-0 text-xs font-normal text-muted-foreground hover:text-foreground">
+                <Button
+                  asChild
+                  variant="link"
+                  className="mt-2 h-auto p-0 text-xs font-normal text-muted-foreground hover:text-foreground"
+                >
                   <Link to="/esqueci-senha">Esqueci minha senha</Link>
                 </Button>
               )}
