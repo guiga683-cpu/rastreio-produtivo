@@ -9,7 +9,9 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as EsqueciSenhaRouteImport } from './routes/esqueci-senha'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AtualizarSenhaRouteImport } from './routes/atualizar-senha'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedProjetosRouteImport } from './routes/_authenticated/projetos'
@@ -18,9 +20,19 @@ import { Route as AuthenticatedFaturamentoRouteImport } from './routes/_authenti
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 
+const EsqueciSenhaRoute = EsqueciSenhaRouteImport.update({
+  id: '/esqueci-senha',
+  path: '/esqueci-senha',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AtualizarSenhaRoute = AtualizarSenhaRouteImport.update({
+  id: '/atualizar-senha',
+  path: '/atualizar-senha',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
@@ -61,7 +73,9 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/atualizar-senha': typeof AtualizarSenhaRoute
   '/auth': typeof AuthRoute
+  '/esqueci-senha': typeof EsqueciSenhaRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/faturamento': typeof AuthenticatedFaturamentoRoute
@@ -70,7 +84,9 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/atualizar-senha': typeof AtualizarSenhaRoute
   '/auth': typeof AuthRoute
+  '/esqueci-senha': typeof EsqueciSenhaRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/faturamento': typeof AuthenticatedFaturamentoRoute
@@ -81,7 +97,9 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/atualizar-senha': typeof AtualizarSenhaRoute
   '/auth': typeof AuthRoute
+  '/esqueci-senha': typeof EsqueciSenhaRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/faturamento': typeof AuthenticatedFaturamentoRoute
@@ -92,7 +110,9 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/atualizar-senha'
     | '/auth'
+    | '/esqueci-senha'
     | '/admin'
     | '/dashboard'
     | '/faturamento'
@@ -101,7 +121,9 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/atualizar-senha'
     | '/auth'
+    | '/esqueci-senha'
     | '/admin'
     | '/dashboard'
     | '/faturamento'
@@ -111,7 +133,9 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/atualizar-senha'
     | '/auth'
+    | '/esqueci-senha'
     | '/_authenticated/admin'
     | '/_authenticated/dashboard'
     | '/_authenticated/faturamento'
@@ -122,16 +146,32 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AtualizarSenhaRoute: typeof AtualizarSenhaRoute
   AuthRoute: typeof AuthRoute
+  EsqueciSenhaRoute: typeof EsqueciSenhaRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/esqueci-senha': {
+      id: '/esqueci-senha'
+      path: '/esqueci-senha'
+      fullPath: '/esqueci-senha'
+      preLoaderRoute: typeof EsqueciSenhaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth': {
       id: '/auth'
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/atualizar-senha': {
+      id: '/atualizar-senha'
+      path: '/atualizar-senha'
+      fullPath: '/atualizar-senha'
+      preLoaderRoute: typeof AtualizarSenhaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -208,7 +248,9 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AtualizarSenhaRoute: AtualizarSenhaRoute,
   AuthRoute: AuthRoute,
+  EsqueciSenhaRoute: EsqueciSenhaRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

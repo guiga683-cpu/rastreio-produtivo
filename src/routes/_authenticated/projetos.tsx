@@ -22,22 +22,17 @@ type StatusFilter = "aberto" | "fechado" | "todos";
 function ProjetosPage() {
   const qc = useQueryClient();
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("aberto");
-  const { data, isLoading, error, refetch } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ["projetos-full"],
     queryFn: async () => {
       const [pRes, eRes] = await Promise.all([
-        supabase.from("projects").select("*").order("created_at"),
+        supabase.from("projects").select("id,name,client,concluido").order("created_at"),
         supabase.from("equipments").select("*").order("created_at"),
       ]);
       if (pRes.error) throw pRes.error;
       if (eRes.error) throw eRes.error;
       const equipments = (eRes.data ?? []) as Equipment[];
-      const projects = (pRes.data ?? []).map<Project>((p) => ({
-        id: p.id,
-        name: p.name,
-        client: p.client,
-        concluido: p.concluido ?? false,
-      }));
+      const projects = (pRes.data ?? []) as Project[];
       return projects.map<FullProject>((p) => ({
         ...p,
         equipments: equipments.filter((e) => e.project_id === p.id),
@@ -79,21 +74,7 @@ function ProjetosPage() {
         </ToggleGroup>
       </div>
       {isLoading && <div className="text-sm text-muted-foreground">Carregando…</div>}
-      {!isLoading && error && (
-        <div className="space-y-2 rounded-md border border-danger/30 bg-danger/10 p-4 text-sm text-danger">
-          <div className="font-medium">Não foi possível carregar os projetos.</div>
-          <div className="text-xs break-words">
-            {error instanceof Error ? error.message : String(error)}
-          </div>
-          <button
-            onClick={() => refetch()}
-            className="inline-flex items-center gap-1 rounded-md border border-danger/30 px-2 py-1 text-xs hover:bg-danger/10"
-          >
-            <RotateCcw className="h-3 w-3" /> Tentar novamente
-          </button>
-        </div>
-      )}
-      {!isLoading && !error && projects.length === 0 && (
+      {!isLoading && projects.length === 0 && (
         <div className="rounded-md border border-dashed bg-card/50 p-8 text-center text-sm text-muted-foreground">
           {allProjects.length === 0
             ? 'Nenhum projeto ainda. Crie um na aba "Novo projeto".'

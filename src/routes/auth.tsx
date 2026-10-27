@@ -1,21 +1,41 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Package } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
-  head: () => ({ meta: [{ title: "Entrar — Embarques" }] }),
+  validateSearch: (search: Record<string, unknown>): { senhaAtualizada?: boolean } =>
+    search.senhaAtualizada === true || search.senhaAtualizada === "true"
+      ? { senhaAtualizada: true }
+      : {},
+  head: () => ({
+    meta: [
+      { title: "Entrar — Embarques" },
+      {
+        name: "description",
+        content: "Entre no Embarques para acompanhar projetos e prazos de embarque.",
+      },
+      { property: "og:title", content: "Entrar — Embarques" },
+      { property: "og:description", content: "Acesse sua conta no Embarques." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   component: AuthPage,
 });
 
 function AuthPage() {
   const navigate = useNavigate();
+  const { senhaAtualizada } = Route.useSearch();
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [info, setInfo] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(
+    senhaAtualizada ? "Senha atualizada com sucesso. Entre com sua nova senha." : null,
+  );
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -125,6 +145,15 @@ function AuthPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full rounded-md border bg-background px-3 py-2 text-sm"
               />
+              {mode === "login" && (
+                <Button
+                  asChild
+                  variant="link"
+                  className="mt-2 h-auto p-0 text-xs font-normal text-muted-foreground hover:text-foreground"
+                >
+                  <Link to="/esqueci-senha">Esqueci minha senha</Link>
+                </Button>
+              )}
             </div>
             {error && (
               <div className="rounded-md bg-danger/10 px-3 py-2 text-xs text-danger">{error}</div>
