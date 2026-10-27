@@ -68,7 +68,7 @@ function UpdatePasswordPage() {
           link.invalid ||
           sessionError ||
           !data.user ||
-          !(recovered || remembered || link.recovery)
+          !(recovered || remembered)
         ) {
           sessionStorage.removeItem(recoveryKey);
           setState("invalid");
