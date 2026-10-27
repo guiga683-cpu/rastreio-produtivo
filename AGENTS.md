@@ -10,3 +10,5 @@
 > the editor, so keep the branch in a working state.
 
 <!-- LOVABLE:END -->
+
+- Password recovery uses standalone public routes, shared authentication card and Zod validation helpers; this keeps recovery outside approval gates without changing equipment data.
