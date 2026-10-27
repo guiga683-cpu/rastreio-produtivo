@@ -1,7 +1,19 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
+import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Check, X, ShieldCheck } from "lucide-react";
+import { Check, X, ShieldCheck, KeyRound, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({ meta: [{ title: "Admin — Embarques" }] }),
@@ -21,6 +33,8 @@ type Profile = {
 
 function AdminPage() {
   const qc = useQueryClient();
+  const [resetTarget, setResetTarget] = useState<Profile | null>(null);
+  const [sendingEmail, setSendingEmail] = useState<string | null>(null);
   const { data, isLoading } = useQuery({
     queryKey: ["admin-profiles"],
     queryFn: async () => {
@@ -64,6 +78,22 @@ function AdminPage() {
     qc.invalidateQueries({ queryKey: ["admin-profiles"] });
   }
 
+  async function sendResetLink(email: string) {
+    setSendingEmail(email);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + "/atualizar-senha",
+      });
+      if (error) toast.error(error.message);
+      else toast.success(`Link de redefinição enviado para ${email}`);
+    } catch {
+      toast.error("Não foi possível enviar o link agora. Tente novamente.");
+    } finally {
+      setSendingEmail(null);
+      setResetTarget(null);
+    }
+  }
+
   const profiles = data?.profiles ?? [];
   const adminIds = data?.adminIds ?? new Set<string>();
   const pending = profiles.filter((p) => p.status === "pending");
@@ -95,6 +125,8 @@ function AdminPage() {
             adminIds={adminIds}
             setStatus={setStatus}
             toggleAdmin={toggleAdmin}
+            onResetPassword={setResetTarget}
+            sendingEmail={sendingEmail}
             showApproveActions
           />
         )}
@@ -109,8 +141,37 @@ function AdminPage() {
           adminIds={adminIds}
           setStatus={setStatus}
           toggleAdmin={toggleAdmin}
+          onResetPassword={setResetTarget}
+          sendingEmail={sendingEmail}
         />
       </section>
+
+      <AlertDialog
+        open={resetTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) setResetTarget(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Redefinir senha</AlertDialogTitle>
+            <AlertDialogDescription>
+              Enviaremos um e-mail com um link para redefinir a senha do endereço{" "}
+              <span className="font-medium text-foreground">{resetTarget?.email}</span>. O link
+              expira em algumas horas e só permite a troca da senha desse usuário.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={sendingEmail !== null}
+              onClick={() => resetTarget && void sendResetLink(resetTarget.email)}
+            >
+              Enviar link
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
@@ -121,12 +182,16 @@ function UserTable({
   setStatus,
   toggleAdmin,
   showApproveActions = false,
+  onResetPassword,
+  sendingEmail,
 }: {
   rows: Profile[];
   adminIds: Set<string>;
   setStatus: (id: string, s: Profile["status"]) => void;
   toggleAdmin: (id: string, isAdmin: boolean) => void;
   showApproveActions?: boolean;
+  onResetPassword: (profile: Profile) => void;
+  sendingEmail: string | null;
 }) {
   if (rows.length === 0)
     return (
@@ -193,6 +258,18 @@ function UserTable({
                         {isAdmin ? "Remover admin" : "Tornar admin"}
                       </button>
                     )}
+                    <button
+                      onClick={() => onResetPassword(u)}
+                      disabled={sendingEmail === u.email}
+                      className="inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {sendingEmail === u.email ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : (
+                        <KeyRound className="h-3 w-3" />
+                      )}
+                      Redefinir senha
+                    </button>
                   </div>
                 </td>
               </tr>
