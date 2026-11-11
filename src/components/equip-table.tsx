@@ -291,21 +291,21 @@ export function EquipTable({
                 onSort={handleSort}
               />
             </th>
-            {!hide.has("data_producao") && (
+            {!hide.has("status_producao") && (
               <th className="px-3 py-2 font-medium" style={normalTh}>
                 <SortableHeader
-                  column="data_producao"
-                  label="Data Prod."
+                  column="status_producao"
+                  label="Lib. para prod"
                   sortCriteria={sortCriteria}
                   onSort={handleSort}
                 />
               </th>
             )}
-            {!hide.has("status_producao") && (
+            {!hide.has("data_producao") && (
               <th className="px-3 py-2 font-medium" style={normalTh}>
                 <SortableHeader
-                  column="status_producao"
-                  label="Status Prod."
+                  column="data_producao"
+                  label="Data Prod."
                   sortCriteria={sortCriteria}
                   onSort={handleSort}
                 />
@@ -471,6 +471,11 @@ export function EquipTable({
                       : formatBRL(r.valor_unitario)}
                   </td>
                   <td className="px-3 py-2 text-right tabular-nums">{r.quantidade}</td>
+                  {!hide.has("status_producao") && (
+                    <td className={`px-3 py-2 ${mat ? "text-muted-foreground/40" : ""}`}>
+                      {mat ? (r.status_producao ?? "") : <ProdBadge value={r.status_producao} />}
+                    </td>
+                  )}
                   {!hide.has("data_producao") && (
                     <td
                       className={`px-3 py-2 whitespace-nowrap ${mat ? "text-muted-foreground/40" : ""}`}
@@ -480,11 +485,6 @@ export function EquipTable({
                           ? formatDate(r.data_producao)
                           : ""
                         : formatDate(r.data_producao)}
-                    </td>
-                  )}
-                  {!hide.has("status_producao") && (
-                    <td className={`px-3 py-2 ${mat ? "text-muted-foreground/40" : ""}`}>
-                      {mat ? (r.status_producao ?? "") : <ProdBadge value={r.status_producao} />}
                     </td>
                   )}
                   <td className="px-3 py-2 whitespace-nowrap">{formatDate(r.data_faturamento)}</td>
