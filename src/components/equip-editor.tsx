@@ -156,10 +156,10 @@ export function EquipEditor({ rows, onChange, sortable = false }: Props) {
                 Qtd
               </th>
               <th className="px-2 py-2 font-medium" style={NORMAL_TH}>
-                Data Prod.
+                Lib. para prod
               </th>
               <th className="px-2 py-2 font-medium" style={NORMAL_TH}>
-                Status Prod.
+                Data Prod.
               </th>
               <th className="px-2 py-2 font-medium" style={NORMAL_TH}>
                 Data Faturamento
@@ -251,15 +251,6 @@ export function EquipEditor({ rows, onChange, sortable = false }: Props) {
                   />
                 </td>
                 <td className="px-2 py-1.5">
-                  <input
-                    type="date"
-                    value={r.data_producao ?? ""}
-                    disabled={r.tipo !== "Equipamento"}
-                    onChange={(e) => update(i, { data_producao: e.target.value || null })}
-                    className={`rounded border px-2 py-1 text-xs ${r.tipo !== "Equipamento" ? "bg-muted opacity-60 cursor-not-allowed" : "bg-background"}`}
-                  />
-                </td>
-                <td className="px-2 py-1.5">
                   <select
                     value={r.status_producao ?? "NOK"}
                     disabled={r.tipo !== "Equipamento"}
@@ -271,6 +262,15 @@ export function EquipEditor({ rows, onChange, sortable = false }: Props) {
                     <option value="OK">OK</option>
                     <option value="NOK">NOK</option>
                   </select>
+                </td>
+                <td className="px-2 py-1.5">
+                  <input
+                    type="date"
+                    value={r.data_producao ?? ""}
+                    disabled={r.tipo !== "Equipamento"}
+                    onChange={(e) => update(i, { data_producao: e.target.value || null })}
+                    className={`rounded border px-2 py-1 text-xs ${r.tipo !== "Equipamento" ? "bg-muted opacity-60 cursor-not-allowed" : "bg-background"}`}
+                  />
                 </td>
                 <td className="px-2 py-1.5">
                   <input
