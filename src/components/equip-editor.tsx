@@ -150,7 +150,7 @@ export function EquipEditor({ rows, onChange, sortable = false }: Props) {
                 Posição
               </th>
               <th className="px-2 py-2 font-medium" style={NORMAL_TH}>
-                Valor
+                Valor un. (R$)
               </th>
               <th className="px-2 py-2 font-medium" style={NORMAL_TH}>
                 Qtd
@@ -233,13 +233,18 @@ export function EquipEditor({ rows, onChange, sortable = false }: Props) {
                   />
                 </td>
                 <td className="px-2 py-1.5">
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={r.valor_unitario}
-                    onChange={(e) => update(i, { valor_unitario: Number(e.target.value) })}
-                    className="w-28 rounded border bg-background px-2 py-1 text-right text-xs"
-                  />
+                  <div className="relative w-32">
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={r.valor_unitario}
+                      onChange={(e) => update(i, { valor_unitario: Number(e.target.value) })}
+                      className="w-full rounded border bg-background py-1 pl-2 pr-8 text-right text-xs"
+                    />
+                    <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+                      un.
+                    </span>
+                  </div>
                 </td>
                 <td className="px-2 py-1.5">
                   <input
