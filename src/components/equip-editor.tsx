@@ -1,7 +1,49 @@
-import type { CSSProperties } from "react";
+import { useState, type CSSProperties } from "react";
 import type { Equipment, StatusEmbarque, StatusProducao, TipoItem } from "@/lib/embarques";
 import { isTipoMaterial } from "@/lib/embarques";
 import { Trash2, Plus } from "lucide-react";
+
+const VALOR_FMT = new Intl.NumberFormat("pt-BR", {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
+/** "55.049,52" / "55049,52" → 55049.52 */
+function parseValor(text: string): number {
+  const n = Number(
+    text
+      .replace(/\./g, "")
+      .replace(",", ".")
+      .replace(/[^\d.-]/g, ""),
+  );
+  return Number.isFinite(n) ? n : 0;
+}
+
+/** Campo de valor em formato brasileiro (000.000,00). Enquanto o usuário digita,
+ * mostra o número sem separador de milhar; ao sair do campo, formata. */
+function ValorInput({ value, onChange }: { value: number; onChange: (n: number) => void }) {
+  const [draft, setDraft] = useState<string | null>(null);
+  const shown = draft ?? VALOR_FMT.format(Number(value || 0));
+  return (
+    <input
+      type="text"
+      inputMode="decimal"
+      value={shown}
+      onFocus={(e) => {
+        const n = Number(value || 0);
+        setDraft(n === 0 ? "" : VALOR_FMT.format(n).replace(/\./g, ""));
+        requestAnimationFrame(() => e.target.select());
+      }}
+      onChange={(e) => {
+        const t = e.target.value.replace(/[^\d.,]/g, "");
+        setDraft(t);
+        onChange(parseValor(t));
+      }}
+      onBlur={() => setDraft(null)}
+      className="w-32 rounded border bg-background px-2 py-1 text-right text-xs tabular-nums"
+    />
+  );
+}
 
 const EDITOR_EQUIP_W = 280;
 const EDITOR_TIPO_LEFT = EDITOR_EQUIP_W;
@@ -233,18 +275,10 @@ export function EquipEditor({ rows, onChange, sortable = false }: Props) {
                   />
                 </td>
                 <td className="px-2 py-1.5">
-                  <div className="relative w-32">
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={r.valor_unitario}
-                      onChange={(e) => update(i, { valor_unitario: Number(e.target.value) })}
-                      className="w-full rounded border bg-background py-1 pl-2 pr-8 text-right text-xs"
-                    />
-                    <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
-                      un.
-                    </span>
-                  </div>
+                  <ValorInput
+                    value={r.valor_unitario}
+                    onChange={(n) => update(i, { valor_unitario: n })}
+                  />
                 </td>
                 <td className="px-2 py-1.5">
                   <input
