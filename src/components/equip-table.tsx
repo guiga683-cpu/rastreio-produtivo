@@ -468,11 +468,13 @@ export function EquipTable({
                   <td className="px-3 py-2 text-right tabular-nums whitespace-nowrap min-w-[110px]">
                     {editableCargas && cargas.length > 0 ? (
                       formatBRL(cargaSum)
+                    ) : mat ? (
+                      formatBRL(r.valor_unitario)
                     ) : (
-                      <>
+                      <span className="inline-flex items-baseline gap-1 whitespace-nowrap">
                         {formatBRL(r.valor_unitario)}
-                        <span className="ml-1 text-[10px] text-muted-foreground">un.</span>
-                      </>
+                        <span className="text-[10px] text-muted-foreground">un.</span>
+                      </span>
                     )}
                   </td>
                   <td className="px-3 py-2 text-right tabular-nums">{r.quantidade}</td>
